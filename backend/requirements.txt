@@ -42,7 +42,7 @@ rank-bm25==0.2.2
 pydantic==2.10.4
 pydantic-settings==2.7.0
 python-dotenv==1.0.1
-numpy==2.2.1
+numpy>=1.26.0,<2
 tqdm==4.67.1
 rich==13.9.4
 
