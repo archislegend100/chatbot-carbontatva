@@ -28,8 +28,11 @@ COPY .env* ./
 # Note: PDFs are excluded as they are too large for GitHub. Indexes are sufficient for serving.
 COPY data/ ./data/
 
-# Set Python path
+# Set Python path and inject our uvicorn shim
 ENV PYTHONPATH=/app/backend
+COPY uvicorn_shim.sh /app/uvicorn
+RUN chmod +x /app/uvicorn
+ENV PATH="/app:$PATH"
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
