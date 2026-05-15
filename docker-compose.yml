@@ -1,0 +1,85 @@
+version: '3.9'
+
+# ============================================================
+# Industrial Energy Efficiency Copilot — Docker Compose
+#
+# Services:
+#   backend   — FastAPI RAG backend
+#   frontend  — Next.js web app (production build)
+#   ingest    — One-off ingestion job (run manually)
+#
+# Usage:
+#   # Start all services
+#   docker compose up
+#
+#   # Run ingestion first (required before backend can answer)
+#   docker compose run --rm ingest
+#
+#   # Rebuild
+#   docker compose up --build
+#
+#   # Production (detached)
+#   docker compose up -d
+# ============================================================
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    ports:
+      - "8000:8000"
+    volumes:
+      # Persist the vector index between runs
+      - ./data:/app/data
+      # Mount PDFs (from project root)
+      - .:/app/pdfs:ro
+    environment:
+      - LLM_PROVIDER=${LLM_PROVIDER:-gemini}
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - PDF_THERMAL=/app/pdfs/bee guide - thermal utility.pdf
+      - PDF_ELECTRICAL=/app/pdfs/bee guide - electrical utilities.pdf
+      - CHROMA_DIR=/app/data/indexes/chroma
+      - BM25_INDEX_PATH=/app/data/indexes/bm25_index.pkl
+      - CHUNKS_CACHE_PATH=/app/data/indexes/chunks.jsonl
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://backend:8000
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # One-off ingestion job — run with:
+  # docker compose run --rm ingest
+  ingest:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    volumes:
+      - ./data:/app/data
+      - .:/app/pdfs:ro
+    environment:
+      - PDF_THERMAL=/app/pdfs/bee guide - thermal utility.pdf
+      - PDF_ELECTRICAL=/app/pdfs/bee guide - electrical utilities.pdf
+      - CHROMA_DIR=/app/data/indexes/chroma
+      - BM25_INDEX_PATH=/app/data/indexes/bm25_index.pkl
+      - CHUNKS_CACHE_PATH=/app/data/indexes/chunks.jsonl
+    command: ["python", "scripts/ingest.py", "--force-rebuild"]
+    profiles:
+      - ingest
