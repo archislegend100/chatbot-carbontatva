@@ -1,4 +1,4 @@
-# Industrial Energy Efficiency Copilot
+# Industrial Energy Efficiency Copilot (CarbonTatvaAI)
 
 **Agentic RAG system over BEE Thermal and Electrical Utility Manuals.**  
 Built on **LangGraph** orchestration · **Mistral API** (cloud LLM) · **Tesseract OCR** · Hybrid RAG · Multi-provider LLM support.
@@ -620,29 +620,6 @@ User Query (natural language)
 
 ---
 
-## 12. Technical Report
-
-A comprehensive LaTeX technical report covering the full system architecture, all metric formulas, and the fine-tuning strategy is at:
-
-```
-docs/technical_report.tex
-```
-
-**To compile to PDF:**
-```bash
-# Install LaTeX (one-time)
-sudo apt-get install texlive-latex-base texlive-latex-extra texlive-fonts-recommended
-
-# Compile (run twice for table of contents)
-cd docs
-pdflatex technical_report.tex
-pdflatex technical_report.tex     # Second pass builds TOC + references
-```
-
-Output: `docs/technical_report.pdf`
-
----
-
 ## Tech Stack
 
 | Layer | Technology | Version |
@@ -664,5 +641,5 @@ Output: `docs/technical_report.pdf`
 
 ## License
 
-Internal prototype — CarbonTatva Engineering.  
+Internal prototype — CarbonTatvaAI.  
 BEE manuals © Bureau of Energy Efficiency, Government of India.
