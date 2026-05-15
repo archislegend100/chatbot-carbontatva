@@ -19,9 +19,9 @@ opencv-python-headless>=4.10.0
 # System install needed: sudo apt-get install tesseract-ocr tesseract-ocr-eng
 
 # --- LangGraph orchestration (v2) ---
-langgraph>=0.2.0
-langchain>=0.3.0
-langchain-community>=0.3.0
+langgraph>=0.2.0,<0.3.0
+langchain>=0.3.0,<0.4.0
+langchain-community>=0.3.0,<0.4.0
 
 # --- Caching (v2) ---
 diskcache>=5.6.3
