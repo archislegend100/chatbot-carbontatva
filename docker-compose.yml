@@ -26,7 +26,7 @@ services:
   backend:
     build:
       context: .
-      dockerfile: Dockerfile.backend
+      dockerfile: Dockerfile
     ports:
       - "8000:8000"
     volumes:
@@ -35,10 +35,8 @@ services:
       # Mount PDFs (from project root)
       - .:/app/pdfs:ro
     environment:
-      - LLM_PROVIDER=${LLM_PROVIDER:-gemini}
-      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
-      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
-      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - LLM_PROVIDER=${LLM_PROVIDER:-mistral}
+      - MISTRAL_API_KEY=${MISTRAL_API_KEY:-}
       - PDF_THERMAL=/app/pdfs/bee guide - thermal utility.pdf
       - PDF_ELECTRICAL=/app/pdfs/bee guide - electrical utilities.pdf
       - CHROMA_DIR=/app/data/indexes/chroma
@@ -55,7 +53,7 @@ services:
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile.frontend
+      dockerfile: Dockerfile
     ports:
       - "3000:3000"
     environment:
@@ -70,7 +68,7 @@ services:
   ingest:
     build:
       context: .
-      dockerfile: Dockerfile.backend
+      dockerfile: Dockerfile
     volumes:
       - ./data:/app/data
       - .:/app/pdfs:ro

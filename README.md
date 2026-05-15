@@ -1,7 +1,7 @@
 # Industrial Energy Efficiency Copilot (CarbonTatvaAI)
 
 **Agentic RAG system over BEE Thermal and Electrical Utility Manuals.**  
-Built on **LangGraph** orchestration · **Mistral API** (cloud LLM) · **Tesseract OCR** · Hybrid RAG · Multi-provider LLM support.
+Built on **LangGraph** orchestration · **Mistral API** (cloud LLM) · **Tesseract OCR** · Hybrid RAG.
 
 ---
 
@@ -55,7 +55,7 @@ Eight specialist tools respond to different query types:
 | Node.js | 18 | 20 |
 | Mistral API key | Required | — |
 
-> **No GPU required** when using the Mistral API (default). GPU is only needed if you switch to a local Ollama model.
+> **No GPU required** (cloud inference via Mistral API).
 
 ---
 
@@ -69,7 +69,7 @@ sudo apt-get update
 sudo apt-get install -y tesseract-ocr tesseract-ocr-eng
 ```
 
-Or use the provided setup script (also installs Ollama if you want a local fallback):
+Or use the provided setup script:
 ```bash
 sudo bash scripts/setup_system.sh
 ```
@@ -142,7 +142,6 @@ curl http://localhost:8000/api/health
 ```
 Expected: `{"status":"ok","index_loaded":true,"chunk_count":...}`
 
-> If using Ollama as a local fallback, also start it in a third terminal: `ollama serve`
 
 ---
 
@@ -323,19 +322,7 @@ LLM_PROVIDER=mistral
 MISTRAL_API_KEY=your-mistral-api-key-here   # https://console.mistral.ai
 MISTRAL_MODEL=mistral-small-latest
 
-# === Optional cloud alternatives ===
-# LLM_PROVIDER=gemini
-GEMINI_API_KEY=
-GEMINI_MODEL=gemini-1.5-flash
 
-# LLM_PROVIDER=openai
-OPENAI_API_KEY=
-OPENAI_MODEL=gpt-4o-mini
-
-# === Local fallback (no API key needed) ===
-# LLM_PROVIDER=ollama
-OLLAMA_BASE_URL=http://localhost:11434
-OLLAMA_MODEL=qwen2.5:7b
 
 # === Retrieval ===
 DENSE_TOP_K=15          # Candidates from dense search
@@ -361,17 +348,6 @@ PDF_ELECTRICAL=bee guide - electrical utilities.pdf
 | Provider | Key Setting | Model Setting | Notes |
 |----------|------------|---------------|-------|
 | `mistral` | `MISTRAL_API_KEY` | `MISTRAL_MODEL` | **Default — fast, cloud API** |
-| `gemini` | `GEMINI_API_KEY` | `GEMINI_MODEL` | Google Gemini |
-| `openai` | `OPENAI_API_KEY` | `OPENAI_MODEL` | OpenAI GPT |
-| `ollama` | _(none)_ | `OLLAMA_MODEL` | Local fallback, requires GPU |
-
-### Ollama model options (local fallback)
-
-| Model | VRAM | Quality | Speed | When to use |
-|-------|------|---------|-------|-------------|
-| `qwen2.5:7b` | 4.7 GB | ⭐⭐⭐⭐ | ⭐⭐⭐ | **Recommended local** |
-| `llama3.2:3b` | 2.0 GB | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ | Low VRAM |
-| `gemma2:9b` | 5.5 GB | ⭐⭐⭐⭐⭐ | ⭐⭐ | Best local quality |
 
 ---
 
@@ -425,7 +401,6 @@ chatbot_carbontatva/
 │   │   ├── generation/
 │   │   │   ├── llm_client.py       # Multi-provider adapter
 │   │   │   ├── mistral_client.py   # Mistral API client (primary)
-│   │   │   ├── ollama_client.py    # Ollama client (local fallback)
 │   │   │   └── prompts.py          # Tool-specific prompts
 │   │   ├── cache/
 │   │   │   └── query_cache.py      # Disk LRU cache
@@ -533,17 +508,7 @@ python evaluation/evaluate.py --k 8 --base-url http://localhost:8000
 4. Add UI entry to `TOOL_MODES` in `frontend/src/app/page.tsx`
 5. Add test cases to `evaluation/synthetic_dataset.json`
 
-### Switch LLM provider
 
-```bash
-# .env — switch to Gemini
-LLM_PROVIDER=gemini
-GEMINI_API_KEY=your-key
-
-# .env — switch to local Ollama
-LLM_PROVIDER=ollama
-OLLAMA_MODEL=qwen2.5:7b
-```
 
 ### Add more PDFs
 
@@ -626,7 +591,6 @@ User Query (natural language)
 |-------|-----------|---------| 
 | Orchestration | LangGraph | ≥0.2 |
 | LLM (primary) | Mistral API (`mistral-small-latest`) | cloud |
-| LLM (fallback) | Ollama + configurable model | local |
 | OCR | Tesseract | ≥5.0 |
 | Embeddings | all-MiniLM-L6-v2 | local |
 | Vector store | ChromaDB (HNSW) | 0.5.23 |
