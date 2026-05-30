@@ -222,7 +222,7 @@ ls evaluation/results/run_001/
 
 1. Open http://localhost:3000
 2. Check the **KB Ready** indicator (bottom left sidebar)
-3. Enable **🔍 Debug** toggle to see planner routing for each query
+3. Enable **Debug** toggle to see planner routing for each query
 4. Ask a test query and verify the answer appears in the response panel
 
 **Recommended test queries:**
