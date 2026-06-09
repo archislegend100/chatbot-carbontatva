@@ -15,6 +15,7 @@ Rules:
 10. Do not mention internal retrieval methods to the user.
 11. If retrieved context is weak or unrelated, refuse to answer from unsupported context.
 12. Keep the tone professional and engineering-focused.
+13. Always conclude your response with a brief, polite closing statement offering further assistance (e.g., "Let me know if you need any further clarification on this topic!").
 """
 
 USER_PROMPT_TEMPLATE = """User question:
