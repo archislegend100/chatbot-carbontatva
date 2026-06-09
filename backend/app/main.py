@@ -8,7 +8,7 @@ from typing import List, Dict, Any
 from app.config.settings import settings
 from app.routing.query_router import query_router
 from app.routing.retrieval_planner import retrieval_planner
-from app.models.chat import ChatRequest, QueryResponse, DebugMetadata
+from app.models.chat import ChatRequest, QueryResponse, DebugMetadata, TitleRequest, TitleResponse
 
 from app.retrieval.dense_retriever import dense_retriever
 from app.retrieval.sparse_retriever import sparse_retriever
@@ -41,6 +41,15 @@ app.add_middleware(
 @app.get("/health")
 def health_check():
     return {"status": "ok", "version": "2.0.1"}
+
+@app.post("/chat/title", response_model=TitleResponse)
+async def generate_title_endpoint(request: TitleRequest):
+    prompt = f"Generate a short 3-5 word title for a chat session that starts with this user query: '{request.query}'. Do not use quotes, punctuation, or prefixes."
+    try:
+        title = await mistral_client.generate(prompt, "You are a title generator.")
+        return TitleResponse(title=title.strip(' ".'))
+    except Exception as e:
+        return TitleResponse(title=request.query[:30])
 
 @app.post("/chat", response_model=QueryResponse)
 async def chat_endpoint(request: ChatRequest):

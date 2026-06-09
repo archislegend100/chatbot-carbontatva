@@ -95,17 +95,39 @@ export default function Home() {
       // First message of a new session
       const newId = Date.now().toString();
       const firstMsgText = messages[0]?.content || "New Chat";
-      const newTitle = firstMsgText.slice(0, 30) + (firstMsgText.length > 30 ? "..." : "");
+      const fallbackTitle = firstMsgText.slice(0, 30) + (firstMsgText.length > 30 ? "..." : "");
       
       const newSession: ChatSession = {
         id: newId,
-        title: newTitle,
+        title: fallbackTitle,
         messages,
         expandedThoughts,
         timestamp: Date.now()
       };
       setSessions(prev => [newSession, ...prev]);
       setCurrentSessionId(newId);
+
+      // Asynchronously fetch intelligent title
+      const fetchTitle = async () => {
+        try {
+          const rawApiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+          const apiUrl = rawApiUrl.replace(/\/$/, "");
+          const res = await fetch(`${apiUrl}/chat/title`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ query: firstMsgText }),
+          });
+          if (res.ok) {
+            const data = await res.json();
+            setSessions(prev => prev.map(s => 
+              s.id === newId ? { ...s, title: data.title } : s
+            ));
+          }
+        } catch (e) {
+          console.error("Failed to generate title", e);
+        }
+      };
+      fetchTitle();
     } else if (currentSessionId) {
       // Update existing session
       setSessions(prev => prev.map(s => 

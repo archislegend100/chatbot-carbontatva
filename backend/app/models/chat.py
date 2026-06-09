@@ -9,6 +9,12 @@ class AdvancedRetrievalOptions(BaseModel):
     show_scores: bool = False
     show_latency: bool = False
 
+class TitleRequest(BaseModel):
+    query: str
+
+class TitleResponse(BaseModel):
+    title: str
+
 class ChatRequest(BaseModel):
     query: str
     retrieval_mode: Literal["auto", "fast", "deep", "research"] = "auto"
