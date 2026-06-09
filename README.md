@@ -1,45 +1,56 @@
-# CarbonTatva Copilot
+# CarbonTatva: Industrial Energy Efficiency Copilot
 
-CarbonTatva is an industrial energy-efficiency AI assistant built on a Retrieval-Augmented Generation (RAG) architecture. It is designed to provide professional, engineering-focused answers strictly grounded in the Bureau of Energy Efficiency (BEE) Thermal and Electrical Utility manuals.
+A minimal, highly optimized RAG (Retrieval-Augmented Generation) copilot designed to assist engineers with industrial energy efficiency, specifically built around the Bureau of Energy Efficiency (BEE) manuals.
 
-## Features
+## Architecture
 
-- **Grounded Responses**: Exclusively utilizes the Mistral API to generate technically accurate, context-aware answers.
-- **Dynamic Retrieval Routing**: Automatically adjusts retrieval depth (auto, fast, deep, research) based on query complexity.
-- **Advanced Context Processing**: Uses Reciprocal Rank Fusion (RRF), Cross-Encoder Reranking, and Context Compression.
-- **Persistent Chat Sessions**: Features a ChatGPT-style UI with intelligent auto-generated titles, persistent local storage, and history management.
-- **Cloud-Native Deployment**: Optimized for serverless environments (Vercel) and constrained memory tiers (Render Free Tier) via lazy-loading of heavy ML models.
+CarbonTatva operates on a stateless, cloud-native architecture optimized for speed and free-tier hosting limits:
+- **Frontend:** Next.js (React) + Tailwind CSS + Lucide Icons. Hosted on Vercel.
+- **Backend:** FastAPI (Python) running a flat, highly-optimized routing pipeline. Hosted on Render.
+- **Inference:** Powered by Mistral API (`mistral-small-latest`).
+- **Vector Database:** Local ChromaDB (SQLite) + BM25 Sparse Index.
 
-## Technology Stack
+## Quickstart
 
-- **Frontend**: Next.js (React), Tailwind CSS, TypeScript
-- **Backend**: FastAPI, Python 3.12+
-- **Retrieval Engine**: ChromaDB, BM25, Sentence-Transformers (Lazy-loaded)
-- **Generation Model**: Mistral API
+### 1. Backend Setup (Render)
 
-## Local Development
+1. Navigate to the `backend` directory:
+   ```bash
+   cd backend
+   ```
+2. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+3. Set your environment variables (in `.env` or in your Render dashboard):
+   - `MISTRAL_API_KEY`: Your Mistral AI API key.
+   - `FRONTEND_ORIGIN`: Your deployed Vercel URL (e.g., `https://my-app.vercel.app`) to resolve CORS.
+4. Run the backend:
+   ```bash
+   uvicorn app.main:app --host 0.0.0.0 --port 8000
+   ```
 
-### Backend Setup
-1. Create a virtual environment: `python -m venv .venv && source .venv/bin/activate`
-2. Install dependencies: `pip install -r backend/requirements.txt`
-3. Define your API keys in a `.env` file (see `docs/CONFIGURATION.md`).
-4. Start the server:
+### 2. Frontend Setup (Vercel)
+
+1. Navigate to the `frontend` directory:
+   ```bash
+   cd frontend
+   ```
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Set your environment variables (in `.env.local` or Vercel dashboard):
+   - `NEXT_PUBLIC_API_URL`: The URL of your deployed Render backend (e.g., `https://carbontatva-backend.onrender.com`).
+4. Run the development server:
+   ```bash
+   npm run dev
+   ```
+
+## Ingestion Pipeline
+
+If you need to update the BEE manuals or rebuild the vector index, the ingestion scripts are preserved:
 ```bash
-cd backend
-python -m uvicorn app.main:app --host 0.0.0.0 --port 8000
+./run_ingest.sh
 ```
-
-### Frontend Setup
-1. Install Node.js dependencies:
-```bash
-cd frontend
-npm install
-```
-2. Start the development server:
-```bash
-npm run dev
-```
-
-## Documentation
-
-For a detailed breakdown of the internal architecture and modules, see [CODEBASE_STRUCTURE.md](CODEBASE_STRUCTURE.md).
+This requires a local Python environment and extracts data from the PDFs located in the root directory into the `data/` folder.

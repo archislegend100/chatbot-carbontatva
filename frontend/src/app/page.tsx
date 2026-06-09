@@ -10,6 +10,22 @@ import { Settings, Plus, MessageSquare, ChevronDown, Cpu, ChevronRight, Activity
 
 type RetrievalMode = "auto" | "fast" | "deep" | "research";
 
+const SUGGESTED_QUESTIONS = [
+  "What methods can be used to reduce reactive power losses in an electrical system?",
+  "How can I calculate the Specific Energy Consumption (SEC) of a facility?",
+  "What are the recommended lux levels for general office work and precision assembly?",
+  "Compare the impact of VFDs on power factor versus their impact on harmonic distortion.",
+  "What is the formula for calculating boiler efficiency by the indirect method?",
+  "Give me a step-by-step checklist for conducting a compressed air energy audit.",
+  "Why might a boiler's efficiency be low despite using high-quality fuel?",
+  "Explain the difference between synchronous condensers and capacitor banks for PFC.",
+  "How do you determine the optimal sizing for a power factor correction capacitor?",
+  "What are the most common sources of energy loss in industrial cooling towers?",
+  "How does the blowdown rate affect boiler efficiency and water consumption?",
+  "What are the advantages of using synthetic lubricants in industrial gearboxes?",
+  "Explain the principle of operation of a heat recovery steam generator (HRSG)."
+];
+
 interface ChatSession {
   id: string;
   title: string;
@@ -29,6 +45,7 @@ export default function Home() {
   // Layout State
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [currentSuggestions, setCurrentSuggestions] = useState<string[]>([]);
   
   // Settings State
   const [retrievalMode, setRetrievalMode] = useState<RetrievalMode>("auto");
@@ -55,6 +72,14 @@ export default function Home() {
       document.documentElement.classList.remove('dark');
     }
   }, [isDarkMode]);
+
+  // Update suggestions on empty state
+  useEffect(() => {
+    if (messages.length === 0) {
+      const shuffled = [...SUGGESTED_QUESTIONS].sort(() => 0.5 - Math.random());
+      setCurrentSuggestions(shuffled.slice(0, 4));
+    }
+  }, [messages.length, currentSessionId]);
 
   // Load sessions from localStorage on mount
   useEffect(() => {
@@ -133,11 +158,10 @@ export default function Home() {
     }
   }, [messages, expandedThoughts]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!query.trim()) return;
+  const executeSearch = async (searchQuery: string) => {
+    if (!searchQuery.trim()) return;
 
-    const userMsg = { role: "user", content: query };
+    const userMsg = { role: "user", content: searchQuery };
     setMessages((prev) => [...prev, userMsg]);
     setQuery("");
     setLoading(true);
@@ -173,6 +197,11 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await executeSearch(query);
   };
 
   const handleNewChat = () => {
@@ -357,14 +386,28 @@ export default function Home() {
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 scrollbar-hide">
           <div className="max-w-3xl mx-auto space-y-8">
             {messages.length === 0 && (
-              <div className="flex flex-col items-center justify-center h-full mt-24">
+              <div className="flex flex-col items-center justify-center h-full mt-16 sm:mt-24">
                 <div className="w-20 h-20 rounded-2xl bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-center mb-6 border border-emerald-100 dark:border-emerald-900/50 shadow-sm">
                   <Leaf className="w-10 h-10 text-emerald-500 dark:text-emerald-400" />
                 </div>
-                <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-3 text-center tracking-tight">How can I assist you?</h2>
-                <p className="text-md text-gray-500 dark:text-gray-400 max-w-md text-center font-medium leading-relaxed">
-                  Ask me anything about boiler efficiency, motor performance, or BEE compliance documentation.
+                <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-3 text-center tracking-tight">Welcome to CarbonTatva</h2>
+                <p className="text-md text-gray-500 dark:text-gray-400 max-w-md text-center font-medium leading-relaxed mb-10">
+                  Your AI-powered industrial energy efficiency expert. Ask me anything about utility performance, formulas, or BEE compliance.
                 </p>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-2xl px-4">
+                  {currentSuggestions.map((q, i) => (
+                    <button
+                      key={i}
+                      onClick={() => executeSearch(q)}
+                      className="text-left bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 hover:border-emerald-300 dark:hover:border-emerald-700 hover:shadow-md transition-all duration-300 rounded-xl p-4 cursor-pointer group"
+                    >
+                      <p className="text-sm text-gray-700 dark:text-gray-300 font-medium line-clamp-2 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">
+                        "{q}"
+                      </p>
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
 
