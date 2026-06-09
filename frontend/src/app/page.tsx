@@ -396,7 +396,7 @@ export default function Home() {
                             remarkPlugins={[remarkGfm, remarkMath]} 
                             rehypePlugins={[rehypeKatex]}
                           >
-                            {msg.data.answer}
+                            {msg.data.answer?.replace(/\\\[([\s\S]*?)\\\]/g, '$$$$$1$$$$')?.replace(/\\\(([\s\S]*?)\\\)/g, '$$$1$$')?.replace(/\[\s*(Q_c.*?)\s*\]/g, '$$$$ $1 $$$$')}
                           </ReactMarkdown>
                         </div>
                         

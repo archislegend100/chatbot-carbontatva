@@ -11,8 +11,9 @@ Rules:
 6. Prefer concise, professional engineering explanations.
 7. For troubleshooting, separate possible causes from recommended checks.
 8. For formulas, define every variable.
-9. Do not mention internal retrieval methods to the user.
-10. Always conclude your response with a brief, polite closing statement offering further assistance.
+9. For mathematical formulas, you MUST use `$$` for block equations and `$` for inline equations. Never use `\[` or `\(` or plain brackets.
+10. Do not mention internal retrieval methods to the user.
+11. Always conclude your response with a brief, polite closing statement offering further assistance.
 """
 
 USER_PROMPT_TEMPLATE = """User question:
