@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
-import { Settings, Plus, MessageSquare, ChevronDown, Cpu, ChevronRight, Activity, Database, CheckCircle2, AlertCircle, Leaf } from 'lucide-react';
+import { Settings, Plus, MessageSquare, ChevronDown, Cpu, ChevronRight, Activity, Database, CheckCircle2, AlertCircle, Leaf, Sun, Moon, Info, PanelLeft, X } from 'lucide-react';
 
 type RetrievalMode = "auto" | "fast" | "deep" | "research";
 
@@ -10,11 +10,15 @@ export default function Home() {
   const [query, setQuery] = useState("");
   const [messages, setMessages] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  
+  // Layout State
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isDarkMode, setIsDarkMode] = useState(false);
   
   // Settings State
   const [retrievalMode, setRetrievalMode] = useState<RetrievalMode>("auto");
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [showModeInfo, setShowModeInfo] = useState(false);
   
   // Advanced Options
   const [forceColbert, setForceColbert] = useState(false);
@@ -36,6 +40,15 @@ export default function Home() {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Handle Dark Mode globally
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [isDarkMode]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -95,7 +108,7 @@ export default function Home() {
       <div className="mb-4 mt-2">
         <button 
           onClick={() => toggleThought(idx)}
-          className="flex items-center gap-2 text-xs font-mono text-emerald-600 hover:text-emerald-700 transition-colors bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-full border border-emerald-200"
+          className="flex items-center gap-2 text-xs font-mono text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors bg-emerald-50 dark:bg-emerald-950/30 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 px-3 py-1.5 rounded-full border border-emerald-200 dark:border-emerald-800"
         >
           {isExpanded ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
           <Cpu className="w-3 h-3" />
@@ -103,45 +116,45 @@ export default function Home() {
         </button>
 
         {isExpanded && (
-          <div className="mt-3 p-4 rounded-xl bg-gray-50 border border-gray-200 shadow-sm">
-            <h4 className="text-[10px] uppercase tracking-widest text-gray-500 mb-3 font-semibold">Active Tools & Pipelines</h4>
+          <div className="mt-3 p-4 rounded-xl bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 shadow-sm">
+            <h4 className="text-[10px] uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-3 font-semibold">Active Tools & Pipelines</h4>
             <div className="grid grid-cols-2 gap-2">
               {plan?.use_dense && (
-                <div className="flex items-center gap-2 text-xs text-gray-700 bg-white p-2 rounded border border-gray-100 shadow-sm">
-                  <Database className="w-3 h-3 text-blue-500" /> Dense Semantic Search
+                <div className="flex items-center gap-2 text-xs text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 p-2 rounded border border-gray-100 dark:border-gray-700 shadow-sm">
+                  <Database className="w-3 h-3 text-blue-500 dark:text-blue-400" /> Dense Semantic Search
                 </div>
               )}
               {plan?.use_sparse && (
-                <div className="flex items-center gap-2 text-xs text-gray-700 bg-white p-2 rounded border border-gray-100 shadow-sm">
-                  <Activity className="w-3 h-3 text-emerald-500" /> Sparse Keyword Match
+                <div className="flex items-center gap-2 text-xs text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 p-2 rounded border border-gray-100 dark:border-gray-700 shadow-sm">
+                  <Activity className="w-3 h-3 text-emerald-500 dark:text-emerald-400" /> Sparse Keyword Match
                 </div>
               )}
               {plan?.use_colbert && (
-                <div className="flex items-center gap-2 text-xs text-gray-700 bg-white p-2 rounded border border-gray-100 shadow-sm">
-                  <CheckCircle2 className="w-3 h-3 text-purple-500" /> ColBERT Token Scoring
+                <div className="flex items-center gap-2 text-xs text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 p-2 rounded border border-gray-100 dark:border-gray-700 shadow-sm">
+                  <CheckCircle2 className="w-3 h-3 text-purple-500 dark:text-purple-400" /> ColBERT Token Scoring
                 </div>
               )}
               {plan?.use_multi_query && (
-                <div className="flex items-center gap-2 text-xs text-gray-700 bg-white p-2 rounded border border-gray-100 shadow-sm">
-                  <MessageSquare className="w-3 h-3 text-indigo-500" /> Query Decomposition
+                <div className="flex items-center gap-2 text-xs text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 p-2 rounded border border-gray-100 dark:border-gray-700 shadow-sm">
+                  <MessageSquare className="w-3 h-3 text-indigo-500 dark:text-indigo-400" /> Query Decomposition
                 </div>
               )}
               {plan?.use_hyde && (
-                <div className="flex items-center gap-2 text-xs text-gray-700 bg-white p-2 rounded border border-gray-100 shadow-sm">
-                  <AlertCircle className="w-3 h-3 text-orange-500" /> HyDE Expansion
+                <div className="flex items-center gap-2 text-xs text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 p-2 rounded border border-gray-100 dark:border-gray-700 shadow-sm">
+                  <AlertCircle className="w-3 h-3 text-orange-500 dark:text-orange-400" /> HyDE Expansion
                 </div>
               )}
               {plan?.use_reranking && (
-                <div className="flex items-center gap-2 text-xs text-gray-700 bg-white p-2 rounded border border-gray-100 shadow-sm">
-                  <Activity className="w-3 h-3 text-rose-500" /> Cross-Encoder Reranking
+                <div className="flex items-center gap-2 text-xs text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 p-2 rounded border border-gray-100 dark:border-gray-700 shadow-sm">
+                  <Activity className="w-3 h-3 text-rose-500 dark:text-rose-400" /> Cross-Encoder Reranking
                 </div>
               )}
             </div>
 
             {latency && Object.keys(latency).length > 0 && (
-              <div className="mt-4 pt-3 border-t border-gray-200 flex justify-between items-center text-[11px] font-mono text-gray-500">
+              <div className="mt-4 pt-3 border-t border-gray-200 dark:border-gray-800 flex justify-between items-center text-[11px] font-mono text-gray-500 dark:text-gray-400">
                 <span>Total Pipeline Latency</span>
-                <span className="text-emerald-600 font-semibold">{latency.total?.toFixed(0)}ms</span>
+                <span className="text-emerald-600 dark:text-emerald-400 font-semibold">{latency.total?.toFixed(0)}ms</span>
               </div>
             )}
           </div>
@@ -151,14 +164,14 @@ export default function Home() {
   };
 
   return (
-    <div className="flex h-screen bg-white overflow-hidden text-gray-900 font-sans">
+    <div className="flex h-screen bg-white dark:bg-[#0a0a0a] overflow-hidden text-gray-900 dark:text-gray-100 font-sans transition-colors duration-300">
       
       {/* Sidebar */}
-      <div className={`flex flex-col bg-[#f9fafb] border-r border-gray-200 transition-all duration-300 z-20 ${isSidebarOpen ? 'w-64' : 'w-0 opacity-0'}`}>
+      <div className={`flex flex-col bg-[#f9fafb] dark:bg-[#111111] border-r border-gray-200 dark:border-gray-800 transition-all duration-300 z-20 ${isSidebarOpen ? 'w-64' : 'w-0 opacity-0 border-r-0'}`}>
         <div className="p-4 flex-1 flex flex-col gap-4 overflow-y-auto min-w-[256px]">
           <button 
             onClick={handleNewChat}
-            className="flex items-center gap-2 w-full px-4 py-3 bg-white hover:bg-gray-50 rounded-xl transition-colors border border-gray-200 text-sm font-semibold shadow-sm text-gray-700"
+            className="flex items-center gap-2 w-full px-4 py-3 bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl transition-colors border border-gray-200 dark:border-gray-800 text-sm font-semibold shadow-sm text-gray-700 dark:text-gray-200"
           >
             <Plus className="w-4 h-4" />
             New Chat
@@ -166,20 +179,20 @@ export default function Home() {
 
           {/* History Mockup */}
           <div className="flex-1 mt-6">
-            <h3 className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-3 px-2">History</h3>
+            <h3 className="text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-3 px-2">History</h3>
             <div className="space-y-1">
-              <button className="flex items-center gap-3 w-full px-3 py-2 text-sm text-gray-700 bg-white rounded-lg border border-gray-200 shadow-sm font-medium">
-                <MessageSquare className="w-4 h-4 text-emerald-500" />
+              <button className="flex items-center gap-3 w-full px-3 py-2 text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 shadow-sm font-medium">
+                <MessageSquare className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />
                 <span className="truncate">Current Session</span>
               </button>
             </div>
           </div>
 
           {/* Settings Section in Sidebar */}
-          <div className="pt-4 border-t border-gray-200">
+          <div className="pt-4 border-t border-gray-200 dark:border-gray-800">
             <button 
               onClick={() => setShowAdvanced(!showAdvanced)}
-              className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-600 hover:text-gray-900 transition-colors rounded-lg font-medium"
+              className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 transition-colors rounded-lg font-medium"
             >
               <Settings className="w-4 h-4" />
               Advanced Settings
@@ -187,8 +200,8 @@ export default function Home() {
             </button>
             
             {showAdvanced && (
-              <div className="mt-2 p-3 bg-white rounded-xl border border-gray-200 space-y-3 shadow-sm">
-                <h4 className="text-[10px] text-emerald-600 uppercase tracking-wider font-bold">Overrides</h4>
+              <div className="mt-2 p-3 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 space-y-3 shadow-sm">
+                <h4 className="text-[10px] text-emerald-600 dark:text-emerald-400 uppercase tracking-wider font-bold">Overrides</h4>
                 {[
                   { label: "Force ColBERT", state: forceColbert, setter: setForceColbert },
                   { label: "Force HyDE", state: forceHyde, setter: setForceHyde },
@@ -196,10 +209,10 @@ export default function Home() {
                 ].map((opt, i) => (
                   <label key={i} className="flex items-center gap-2 cursor-pointer group">
                     <input type="checkbox" className="hidden" checked={opt.state} onChange={() => opt.setter(!opt.state)} />
-                    <div className={`w-4 h-4 rounded-sm flex items-center justify-center border transition-all ${opt.state ? 'bg-emerald-500 border-emerald-500' : 'border-gray-300 group-hover:border-emerald-400 bg-gray-50'}`}>
+                    <div className={`w-4 h-4 rounded-sm flex items-center justify-center border transition-all ${opt.state ? 'bg-emerald-500 border-emerald-500' : 'border-gray-300 dark:border-gray-700 group-hover:border-emerald-400 bg-gray-50 dark:bg-gray-800'}`}>
                       {opt.state && <CheckCircle2 className="w-3 h-3 text-white" />}
                     </div>
-                    <span className="text-xs text-gray-600 font-medium">{opt.label}</span>
+                    <span className="text-xs text-gray-600 dark:text-gray-400 font-medium">{opt.label}</span>
                   </label>
                 ))}
               </div>
@@ -209,27 +222,38 @@ export default function Home() {
       </div>
 
       {/* Main Area */}
-      <div className="flex-1 flex flex-col relative z-10 w-full bg-white">
+      <div className="flex-1 flex flex-col relative z-10 w-full bg-white dark:bg-[#0a0a0a]">
         {/* Top Header */}
-        <header className="h-16 flex items-center px-4 justify-between border-b border-gray-100 bg-white/80 backdrop-blur-md sticky top-0 z-20">
+        <header className="h-16 flex items-center px-4 justify-between border-b border-gray-100 dark:border-gray-800 bg-white/80 dark:bg-[#0a0a0a]/80 backdrop-blur-md sticky top-0 z-20">
           <div className="flex items-center gap-3">
             <button 
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors text-gray-500 hover:text-gray-800"
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
+              title="Toggle Sidebar"
             >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" /></svg>
+              <PanelLeft className="w-5 h-5" />
             </button>
             
             {/* Official Logo Area */}
             <div className="flex items-center gap-2 select-none">
-              <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center border border-emerald-100">
-                <Leaf className="w-5 h-5 text-emerald-500 drop-shadow-sm" />
+              <div className="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-950/50 flex items-center justify-center border border-emerald-100 dark:border-emerald-900/50">
+                <Leaf className="w-5 h-5 text-emerald-500 dark:text-emerald-400 drop-shadow-sm" />
               </div>
-              <h1 className="text-[17px] font-bold text-gray-900 tracking-tight flex items-center gap-1">
-                Carbon<span className="text-emerald-500">Tatva</span>
-                <span className="text-[10px] uppercase font-bold tracking-widest text-gray-400 ml-2 border border-gray-200 px-1.5 py-0.5 rounded-md bg-gray-50">Copilot</span>
+              <h1 className="text-[17px] font-bold text-gray-900 dark:text-gray-100 tracking-tight flex items-center gap-1">
+                Carbon<span className="text-emerald-500 dark:text-emerald-400">Tatva</span>
+                <span className="text-[10px] uppercase font-bold tracking-widest text-gray-400 dark:text-gray-500 ml-2 border border-gray-200 dark:border-gray-700 px-1.5 py-0.5 rounded-md bg-gray-50 dark:bg-gray-800 hidden sm:inline-block">Copilot</span>
               </h1>
             </div>
+          </div>
+          
+          <div className="flex items-center">
+            <button
+              onClick={() => setIsDarkMode(!isDarkMode)}
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors text-gray-500 dark:text-gray-400"
+              title="Toggle Theme"
+            >
+              {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            </button>
           </div>
         </header>
 
@@ -238,11 +262,11 @@ export default function Home() {
           <div className="max-w-3xl mx-auto space-y-8">
             {messages.length === 0 && (
               <div className="flex flex-col items-center justify-center h-full mt-24">
-                <div className="w-20 h-20 rounded-2xl bg-emerald-50 flex items-center justify-center mb-6 border border-emerald-100 shadow-sm">
-                  <Leaf className="w-10 h-10 text-emerald-500" />
+                <div className="w-20 h-20 rounded-2xl bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-center mb-6 border border-emerald-100 dark:border-emerald-900/50 shadow-sm">
+                  <Leaf className="w-10 h-10 text-emerald-500 dark:text-emerald-400" />
                 </div>
-                <h2 className="text-3xl font-bold text-gray-900 mb-3 text-center tracking-tight">How can I assist you?</h2>
-                <p className="text-md text-gray-500 max-w-md text-center font-medium leading-relaxed">
+                <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-3 text-center tracking-tight">How can I assist you?</h2>
+                <p className="text-md text-gray-500 dark:text-gray-400 max-w-md text-center font-medium leading-relaxed">
                   Ask me anything about boiler efficiency, motor performance, or BEE compliance documentation.
                 </p>
               </div>
@@ -251,17 +275,17 @@ export default function Home() {
             {messages.map((msg, idx) => (
               <div key={idx} className={`flex w-full ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                 {msg.role !== 'user' && (
-                  <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center border border-emerald-100 shadow-sm mr-4 mt-1 flex-shrink-0">
-                    <Leaf className="w-4 h-4 text-emerald-600" />
+                  <div className="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-950/50 flex items-center justify-center border border-emerald-100 dark:border-emerald-900/50 shadow-sm mr-4 mt-1 flex-shrink-0">
+                    <Leaf className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                   </div>
                 )}
                 
-                <div className={`max-w-[85%] ${msg.role === 'user' ? 'bg-gray-100 border border-gray-200 shadow-sm' : 'bg-transparent'} rounded-2xl ${msg.role === 'user' ? 'px-5 py-3.5' : 'py-2'} text-gray-800`}>
+                <div className={`max-w-[85%] ${msg.role === 'user' ? 'bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm' : 'bg-transparent'} rounded-2xl ${msg.role === 'user' ? 'px-5 py-3.5' : 'py-2'} text-gray-800 dark:text-gray-200`}>
                   {msg.role === 'user' ? (
                     <p className="whitespace-pre-wrap text-[15px] font-medium leading-relaxed">{msg.content}</p>
                   ) : (
                     msg.error ? (
-                      <div className="flex items-center gap-3 text-red-600 bg-red-50 p-4 rounded-xl border border-red-100 shadow-sm">
+                      <div className="flex items-center gap-3 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 p-4 rounded-xl border border-red-100 dark:border-red-900/50 shadow-sm">
                         <AlertCircle className="w-5 h-5" />
                         <p className="text-sm font-semibold">{msg.error}</p>
                       </div>
@@ -271,7 +295,7 @@ export default function Home() {
                         {msg.data.debug && renderAgenticTools(msg.data.retrieval_plan, msg.data.debug.latency_ms, idx)}
 
                         {/* Answer Area */}
-                        <div className="prose prose-emerald max-w-none prose-p:leading-relaxed prose-p:text-[15px] prose-a:text-emerald-600 prose-pre:bg-gray-50 prose-pre:border prose-pre:border-gray-200 prose-headings:text-gray-900 prose-strong:text-gray-900 text-gray-700">
+                        <div className="prose prose-emerald dark:prose-invert max-w-none prose-p:leading-relaxed prose-p:text-[15px] prose-a:text-emerald-600 dark:prose-a:text-emerald-400 prose-pre:bg-gray-50 dark:prose-pre:bg-gray-900 prose-pre:border prose-pre:border-gray-200 dark:prose-pre:border-gray-800 prose-headings:text-gray-900 dark:prose-headings:text-gray-100 prose-strong:text-gray-900 dark:prose-strong:text-gray-100 text-gray-700 dark:text-gray-300">
                           <ReactMarkdown>{msg.data.answer}</ReactMarkdown>
                         </div>
                         
@@ -279,12 +303,12 @@ export default function Home() {
                         {msg.data.citations && msg.data.citations.length > 0 && (
                           <div className="pt-4 mt-6 flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
                             {msg.data.citations.map((cit: any, i: number) => (
-                              <div key={i} className="flex-shrink-0 w-64 group text-sm bg-white border border-gray-200 hover:border-emerald-300 hover:shadow-md transition-all duration-300 rounded-xl p-3 cursor-default">
-                                <div className="font-semibold text-gray-800 flex items-center gap-2 mb-1">
+                              <div key={i} className="flex-shrink-0 w-64 group text-sm bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 hover:border-emerald-300 dark:hover:border-emerald-700 hover:shadow-md transition-all duration-300 rounded-xl p-3 cursor-default">
+                                <div className="font-semibold text-gray-800 dark:text-gray-200 flex items-center gap-2 mb-1">
                                   <span className="truncate text-xs">{cit.book}</span>
-                                  {cit.page > 0 && <span className="text-gray-500 text-[9px] bg-gray-100 px-1.5 py-0.5 rounded-full ml-auto font-mono">Pg {cit.page}</span>}
+                                  {cit.page > 0 && <span className="text-gray-500 dark:text-gray-400 text-[9px] bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded-full ml-auto font-mono">Pg {cit.page}</span>}
                                 </div>
-                                <div className="text-gray-500 text-[11px] line-clamp-2 leading-relaxed">
+                                <div className="text-gray-500 dark:text-gray-400 text-[11px] line-clamp-2 leading-relaxed">
                                   {cit.text_snippet}
                                 </div>
                               </div>
@@ -300,8 +324,8 @@ export default function Home() {
 
             {loading && (
               <div className="flex items-start w-full">
-                <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center border border-emerald-100 shadow-sm mr-4 mt-1 flex-shrink-0">
-                  <Leaf className="w-4 h-4 text-emerald-600" />
+                <div className="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-950/50 flex items-center justify-center border border-emerald-100 dark:border-emerald-900/50 shadow-sm mr-4 mt-1 flex-shrink-0">
+                  <Leaf className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                 </div>
                 <div className="py-2 flex items-center gap-3">
                   <div className="flex space-x-1.5">
@@ -316,28 +340,57 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Floating Input Area (ChatGPT Style) */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-white via-white to-transparent pt-10">
+        {/* Floating Input Area */}
+        <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-white via-white dark:from-[#0a0a0a] dark:via-[#0a0a0a] to-transparent pt-10">
           <div className="max-w-3xl mx-auto relative">
-            <form onSubmit={handleSubmit} className="relative flex items-end gap-2 bg-white border border-gray-300 shadow-lg rounded-2xl p-2 focus-within:border-emerald-500 focus-within:ring-4 focus-within:ring-emerald-500/10 transition-all duration-300">
+            
+            {/* Mode Info Popover */}
+            {showModeInfo && (
+              <div className="absolute bottom-[calc(100%+10px)] left-0 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-2xl rounded-xl p-4 w-72 z-50 animate-in fade-in slide-in-from-bottom-2">
+                <div className="flex justify-between items-center mb-2">
+                  <h4 className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider">Retrieval Modes</h4>
+                  <button onClick={() => setShowModeInfo(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+                <div className="space-y-3 text-xs text-gray-600 dark:text-gray-300">
+                  <p><strong className="text-emerald-600 dark:text-emerald-400">Auto:</strong> Smart routing. Balances speed and accuracy based on your query's complexity.</p>
+                  <p><strong className="text-emerald-600 dark:text-emerald-400">Fast:</strong> Quick facts. Skips heavy reranking. Best for straightforward definitions.</p>
+                  <p><strong className="text-emerald-600 dark:text-emerald-400">Deep:</strong> Comprehensive. Uses semantic expansion and cross-encoder reranking. Best for standard questions.</p>
+                  <p><strong className="text-emerald-600 dark:text-emerald-400">Research:</strong> Exhaustive. Uses ColBERT token matching and Multi-Query. Best for complex troubleshooting.</p>
+                </div>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="relative flex items-end gap-2 bg-white dark:bg-[#111] border border-gray-300 dark:border-gray-700 shadow-lg rounded-2xl p-2 focus-within:border-emerald-500 dark:focus-within:border-emerald-500 focus-within:ring-4 focus-within:ring-emerald-500/10 transition-all duration-300">
               
               {/* Inline Dropdown for Retrieval Mode */}
-              <div className="relative flex-shrink-0 group">
-                <select 
-                  value={retrievalMode}
-                  onChange={(e) => setRetrievalMode(e.target.value as RetrievalMode)}
-                  className="appearance-none bg-gray-50 hover:bg-gray-100 text-xs font-bold text-gray-600 px-3 py-2 pl-3 pr-8 rounded-lg cursor-pointer outline-none border border-gray-200 transition-colors h-10 shadow-sm"
+              <div className="relative flex-shrink-0 flex items-center gap-1 group/mode">
+                <div className="relative">
+                  <select 
+                    value={retrievalMode}
+                    onChange={(e) => setRetrievalMode(e.target.value as RetrievalMode)}
+                    className="appearance-none bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 text-xs font-bold text-gray-700 dark:text-gray-200 px-3 py-2 pl-3 pr-8 rounded-lg cursor-pointer outline-none border border-gray-200 dark:border-gray-700 transition-colors h-10 shadow-sm"
+                  >
+                    <option value="auto">Auto</option>
+                    <option value="fast">Fast</option>
+                    <option value="deep">Deep</option>
+                    <option value="research">Research</option>
+                  </select>
+                  <ChevronDown className="absolute right-2 top-3 w-4 h-4 text-gray-400 pointer-events-none group-hover/mode:text-gray-600 dark:group-hover/mode:text-gray-300 transition-colors" />
+                </div>
+                <button 
+                  type="button"
+                  onClick={() => setShowModeInfo(!showModeInfo)}
+                  className={`p-1.5 rounded-md transition-colors ${showModeInfo ? 'bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800'}`}
+                  title="Mode Info"
                 >
-                  <option value="auto">Auto</option>
-                  <option value="fast">Fast</option>
-                  <option value="deep">Deep</option>
-                  <option value="research">Research</option>
-                </select>
-                <ChevronDown className="absolute right-2 top-3 w-4 h-4 text-gray-400 pointer-events-none group-hover:text-gray-600 transition-colors" />
+                  <Info className="w-4 h-4" />
+                </button>
               </div>
 
               <textarea
-                className="flex-1 bg-transparent text-gray-900 placeholder:text-gray-400 resize-none py-2.5 px-2 focus:outline-none min-h-[44px] max-h-32 text-[15px] scrollbar-hide font-medium leading-relaxed"
+                className="flex-1 bg-transparent text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 resize-none py-2.5 px-1 focus:outline-none min-h-[44px] max-h-32 text-[15px] scrollbar-hide font-medium leading-relaxed"
                 placeholder="Message CarbonTatva..."
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
@@ -353,13 +406,13 @@ export default function Home() {
               <button
                 type="submit"
                 disabled={loading || !query.trim()}
-                className="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center hover:bg-emerald-600 transition-colors disabled:opacity-50 disabled:bg-gray-200 disabled:text-gray-400 flex-shrink-0 shadow-sm"
+                className="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center hover:bg-emerald-600 transition-colors disabled:opacity-50 disabled:bg-gray-200 dark:disabled:bg-gray-800 disabled:text-gray-400 dark:disabled:text-gray-600 flex-shrink-0 shadow-sm"
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 10l7-7m0 0l7 7m-7-7v18" /></svg>
               </button>
             </form>
             <div className="text-center mt-3">
-              <span className="text-[11px] text-gray-400 font-medium tracking-wide">CarbonTatva can make mistakes. Verify important engineering decisions.</span>
+              <span className="text-[11px] text-gray-400 dark:text-gray-500 font-medium tracking-wide">CarbonTatva can make mistakes. Verify important engineering decisions.</span>
             </div>
           </div>
         </div>
