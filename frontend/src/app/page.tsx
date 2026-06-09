@@ -311,10 +311,8 @@ export default function Home() {
             </div>
           </div>
 
-          </div>
         </div>
       </div>
-
       {/* Main Area */}
       <div className="flex-1 flex flex-col relative z-10 w-full bg-white dark:bg-[#0a0a0a]">
         {/* Top Header */}
