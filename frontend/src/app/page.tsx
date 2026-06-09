@@ -2,11 +2,22 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
-import { Settings, Plus, MessageSquare, ChevronDown, Cpu, ChevronRight, Activity, Database, CheckCircle2, AlertCircle, Leaf, Sun, Moon, Info, PanelLeft, X } from 'lucide-react';
+import { Settings, Plus, MessageSquare, ChevronDown, Cpu, ChevronRight, Activity, Database, CheckCircle2, AlertCircle, Leaf, Sun, Moon, Info, PanelLeft, X, Trash2 } from 'lucide-react';
 
 type RetrievalMode = "auto" | "fast" | "deep" | "research";
 
+interface ChatSession {
+  id: string;
+  title: string;
+  messages: any[];
+  expandedThoughts: Record<number, boolean>;
+  timestamp: number;
+}
+
 export default function Home() {
+  const [sessions, setSessions] = useState<ChatSession[]>([]);
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+
   const [query, setQuery] = useState("");
   const [messages, setMessages] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -49,6 +60,61 @@ export default function Home() {
       document.documentElement.classList.remove('dark');
     }
   }, [isDarkMode]);
+
+  // Load sessions from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('carbontatva_sessions');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        setSessions(parsed);
+        if (parsed.length > 0) {
+          const latestSession = parsed[0];
+          setCurrentSessionId(latestSession.id);
+          setMessages(latestSession.messages || []);
+          setExpandedThoughts(latestSession.expandedThoughts || {});
+        }
+      } catch (e) {
+        console.error("Failed to parse sessions", e);
+      }
+    }
+  }, []);
+
+  // Save sessions to localStorage whenever they change
+  useEffect(() => {
+    if (sessions.length > 0) {
+      localStorage.setItem('carbontatva_sessions', JSON.stringify(sessions));
+    } else {
+      localStorage.removeItem('carbontatva_sessions');
+    }
+  }, [sessions]);
+
+  // Update the current session when messages or expandedThoughts change
+  useEffect(() => {
+    if (!currentSessionId && messages.length > 0) {
+      // First message of a new session
+      const newId = Date.now().toString();
+      const firstMsgText = messages[0]?.content || "New Chat";
+      const newTitle = firstMsgText.slice(0, 30) + (firstMsgText.length > 30 ? "..." : "");
+      
+      const newSession: ChatSession = {
+        id: newId,
+        title: newTitle,
+        messages,
+        expandedThoughts,
+        timestamp: Date.now()
+      };
+      setSessions(prev => [newSession, ...prev]);
+      setCurrentSessionId(newId);
+    } else if (currentSessionId) {
+      // Update existing session
+      setSessions(prev => prev.map(s => 
+        s.id === currentSessionId 
+          ? { ...s, messages, expandedThoughts } 
+          : s
+      ));
+    }
+  }, [messages, expandedThoughts]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -95,6 +161,31 @@ export default function Home() {
   const handleNewChat = () => {
     setMessages([]);
     setExpandedThoughts({});
+    setCurrentSessionId(null);
+    if (window.innerWidth < 640) {
+      setIsSidebarOpen(false);
+    }
+  };
+
+  const switchSession = (id: string) => {
+    const session = sessions.find(s => s.id === id);
+    if (session) {
+      setCurrentSessionId(id);
+      setMessages(session.messages || []);
+      setExpandedThoughts(session.expandedThoughts || {});
+      if (window.innerWidth < 640) {
+        setIsSidebarOpen(false);
+      }
+    }
+  };
+
+  const deleteSession = (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    const newSessions = sessions.filter(s => s.id !== id);
+    setSessions(newSessions);
+    if (currentSessionId === id) {
+      handleNewChat();
+    }
   };
 
   const toggleThought = (idx: number) => {
@@ -172,20 +263,38 @@ export default function Home() {
         <div className="p-4 flex-1 flex flex-col gap-4 overflow-y-auto min-w-[256px]">
           <button 
             onClick={handleNewChat}
-            className="flex items-center gap-2 w-full px-4 py-3 bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl transition-colors border border-gray-200 dark:border-gray-800 text-sm font-semibold shadow-sm text-gray-700 dark:text-gray-200"
+            className="flex items-center gap-2 w-full px-4 py-3 bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl transition-colors border border-gray-200 dark:border-gray-800 text-sm font-semibold shadow-sm text-gray-700 dark:text-gray-200 relative z-30 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             New Chat
           </button>
 
-          {/* History Mockup */}
-          <div className="flex-1 mt-6">
+          {/* Chat History */}
+          <div className="flex-1 mt-6 overflow-y-auto pr-1 scrollbar-hide">
             <h3 className="text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-3 px-2">History</h3>
             <div className="space-y-1">
-              <button className="flex items-center gap-3 w-full px-3 py-2 text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 shadow-sm font-medium">
-                <MessageSquare className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />
-                <span className="truncate">Current Session</span>
-              </button>
+              {sessions.length === 0 ? (
+                <div className="px-3 py-2 text-xs text-gray-400 dark:text-gray-600 font-medium">No previous chats.</div>
+              ) : (
+                sessions.map(session => (
+                  <div key={session.id} className="relative group">
+                    <button 
+                      onClick={() => switchSession(session.id)}
+                      className={`flex items-center gap-3 w-full px-3 py-2.5 text-sm rounded-lg border transition-all cursor-pointer ${currentSessionId === session.id ? 'bg-white dark:bg-gray-900 border-emerald-200 dark:border-emerald-800/50 shadow-sm text-gray-900 dark:text-gray-100 font-semibold' : 'border-transparent text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-200 font-medium'}`}
+                    >
+                      <MessageSquare className={`w-4 h-4 flex-shrink-0 ${currentSessionId === session.id ? 'text-emerald-500 dark:text-emerald-400' : 'text-gray-400 dark:text-gray-500'}`} />
+                      <span className="truncate text-left w-full pr-6">{session.title}</span>
+                    </button>
+                    <button 
+                      onClick={(e) => deleteSession(e, session.id)}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md opacity-0 group-hover:opacity-100 transition-all focus:opacity-100 cursor-pointer"
+                      title="Delete Chat"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))
+              )}
             </div>
           </div>
 
