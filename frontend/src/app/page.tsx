@@ -271,7 +271,7 @@ export default function Home() {
     setExpandedThoughts(prev => ({...prev, [idx]: !prev[idx]}));
   };
 
-  const renderAgenticTools = (plan: any, latency: any, idx: number) => {
+  const renderExecutionPipeline = (plan: any, latency: any, idx: number) => {
     if (!plan && !latency) return null;
     const isExpanded = expandedThoughts[idx];
 
@@ -283,7 +283,7 @@ export default function Home() {
         >
           {isExpanded ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
           <Cpu className="w-3 h-3" />
-          <span>Agentic Execution Paths</span>
+          <span>Retrieval Execution Pipeline</span>
         </button>
 
         {isExpanded && (
@@ -463,8 +463,8 @@ export default function Home() {
                       </div>
                     ) : (
                       <div className="space-y-4">
-                        {/* Agentic Tools Display */}
-                        {msg.data.debug && renderAgenticTools(msg.data.retrieval_plan, msg.data.debug.latency_ms, idx)}
+                        {/* Execution Pipeline Display */}
+                        {msg.data.debug && renderExecutionPipeline(msg.data.retrieval_plan, msg.data.debug.latency_ms, idx)}
 
                         {/* Answer Area */}
                         <div className="prose prose-emerald dark:prose-invert max-w-none prose-p:leading-relaxed prose-p:text-[15px] prose-a:text-emerald-600 dark:prose-a:text-emerald-400 prose-pre:bg-gray-50 dark:prose-pre:bg-gray-900 prose-pre:border prose-pre:border-gray-200 dark:prose-pre:border-gray-800 prose-headings:text-gray-900 dark:prose-headings:text-gray-100 prose-strong:text-gray-900 dark:prose-strong:text-gray-100 text-gray-700 dark:text-gray-300">
