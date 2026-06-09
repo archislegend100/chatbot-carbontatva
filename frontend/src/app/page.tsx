@@ -167,7 +167,7 @@ export default function Home() {
     <div className="flex h-screen bg-white dark:bg-[#0a0a0a] overflow-hidden text-gray-900 dark:text-gray-100 font-sans transition-colors duration-300">
       
       {/* Sidebar */}
-      <div className={`flex flex-col bg-[#f9fafb] dark:bg-[#111111] border-r border-gray-200 dark:border-gray-800 transition-all duration-300 z-20 ${isSidebarOpen ? 'w-64' : 'w-0 opacity-0 border-r-0'}`}>
+      <div className={`flex flex-col bg-[#f9fafb] dark:bg-[#111111] border-r border-gray-200 dark:border-gray-800 transition-all duration-300 z-20 overflow-hidden ${isSidebarOpen ? 'w-64' : 'w-0 opacity-0 border-r-0'}`}>
         <div className="p-4 flex-1 flex flex-col gap-4 overflow-y-auto min-w-[256px]">
           <button 
             onClick={handleNewChat}
