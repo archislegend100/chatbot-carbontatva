@@ -28,16 +28,7 @@ export default function Home() {
   
   // Settings State
   const [retrievalMode, setRetrievalMode] = useState<RetrievalMode>("auto");
-  const [showAdvanced, setShowAdvanced] = useState(false);
   const [showModeInfo, setShowModeInfo] = useState(false);
-  
-  // Advanced Options
-  const [forceColbert, setForceColbert] = useState(false);
-  const [forceHyde, setForceHyde] = useState(false);
-  const [forceMultiQuery, setForceMultiQuery] = useState(false);
-  const [showChunks, setShowChunks] = useState(false);
-  const [showScores, setShowScores] = useState(false);
-  const [showLatency, setShowLatency] = useState(false);
 
   // Expanded thought process state per message
   const [expandedThoughts, setExpandedThoughts] = useState<Record<number, boolean>>({});
@@ -154,12 +145,12 @@ export default function Home() {
         query: userMsg.content,
         retrieval_mode: retrievalMode,
         advanced_options: {
-          force_colbert: forceColbert,
-          force_hyde: forceHyde,
-          force_multi_query: forceMultiQuery,
-          show_chunks: showChunks,
-          show_scores: showScores,
-          show_latency: showLatency
+          force_colbert: false,
+          force_hyde: false,
+          force_multi_query: false,
+          show_chunks: false,
+          show_scores: false,
+          show_latency: false
         }
       };
 
@@ -320,35 +311,6 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Settings Section in Sidebar */}
-          <div className="pt-4 border-t border-gray-200 dark:border-gray-800">
-            <button 
-              onClick={() => setShowAdvanced(!showAdvanced)}
-              className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 transition-colors rounded-lg font-medium"
-            >
-              <Settings className="w-4 h-4" />
-              Advanced Settings
-              <ChevronDown className={`w-4 h-4 ml-auto transition-transform ${showAdvanced ? 'rotate-180' : ''}`} />
-            </button>
-            
-            {showAdvanced && (
-              <div className="mt-2 p-3 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 space-y-3 shadow-sm">
-                <h4 className="text-[10px] text-emerald-600 dark:text-emerald-400 uppercase tracking-wider font-bold">Overrides</h4>
-                {[
-                  { label: "Force ColBERT", state: forceColbert, setter: setForceColbert },
-                  { label: "Force HyDE", state: forceHyde, setter: setForceHyde },
-                  { label: "Force Multi-Query", state: forceMultiQuery, setter: setForceMultiQuery },
-                ].map((opt, i) => (
-                  <label key={i} className="flex items-center gap-2 cursor-pointer group">
-                    <input type="checkbox" className="hidden" checked={opt.state} onChange={() => opt.setter(!opt.state)} />
-                    <div className={`w-4 h-4 rounded-sm flex items-center justify-center border transition-all ${opt.state ? 'bg-emerald-500 border-emerald-500' : 'border-gray-300 dark:border-gray-700 group-hover:border-emerald-400 bg-gray-50 dark:bg-gray-800'}`}>
-                      {opt.state && <CheckCircle2 className="w-3 h-3 text-white" />}
-                    </div>
-                    <span className="text-xs text-gray-600 dark:text-gray-400 font-medium">{opt.label}</span>
-                  </label>
-                ))}
-              </div>
-            )}
           </div>
         </div>
       </div>
