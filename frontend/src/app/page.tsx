@@ -2,6 +2,10 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+import 'katex/dist/katex.min.css';
 import { Settings, Plus, MessageSquare, ChevronDown, Cpu, ChevronRight, Activity, Database, CheckCircle2, AlertCircle, Leaf, Sun, Moon, Info, PanelLeft, X, Trash2 } from 'lucide-react';
 
 type RetrievalMode = "auto" | "fast" | "deep" | "research";
@@ -388,7 +392,12 @@ export default function Home() {
 
                         {/* Answer Area */}
                         <div className="prose prose-emerald dark:prose-invert max-w-none prose-p:leading-relaxed prose-p:text-[15px] prose-a:text-emerald-600 dark:prose-a:text-emerald-400 prose-pre:bg-gray-50 dark:prose-pre:bg-gray-900 prose-pre:border prose-pre:border-gray-200 dark:prose-pre:border-gray-800 prose-headings:text-gray-900 dark:prose-headings:text-gray-100 prose-strong:text-gray-900 dark:prose-strong:text-gray-100 text-gray-700 dark:text-gray-300">
-                          <ReactMarkdown>{msg.data.answer}</ReactMarkdown>
+                          <ReactMarkdown 
+                            remarkPlugins={[remarkGfm, remarkMath]} 
+                            rehypePlugins={[rehypeKatex]}
+                          >
+                            {msg.data.answer}
+                          </ReactMarkdown>
                         </div>
                         
                         {/* Citations Area */}
