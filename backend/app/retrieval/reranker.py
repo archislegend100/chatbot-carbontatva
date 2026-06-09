@@ -1,5 +1,4 @@
 from typing import List, Dict, Any
-from sentence_transformers import CrossEncoder
 from app.config.settings import settings
 
 class Reranker:
@@ -10,6 +9,7 @@ class Reranker:
     def _get_model(self):
         # Lazy load reranker to save memory if not immediately needed
         if self._model is None:
+            from sentence_transformers import CrossEncoder
             self._model = CrossEncoder(self.model_name)
         return self._model
 
