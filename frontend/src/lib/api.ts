@@ -16,8 +16,8 @@ import type {
   SourceCitation,
 } from '@/types/api';
 
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const rawApiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const API_BASE = rawApiBase.replace(/\/$/, '');
 
 export class ApiError extends Error {
   constructor(
