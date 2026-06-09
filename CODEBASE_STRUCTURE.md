@@ -53,9 +53,9 @@ These modules are strictly used by `scripts/ingest.py` when running `./run_inges
 The frontend is a **Next.js 16 (App Router)** application built with **React**, **Tailwind CSS**, and **Lucide React**.
 
 *   **`src/app/page.tsx`**: The core UI component. It handles:
-    *   **State Management**: Manages chat sessions, messages, and UI toggles using React `useState`.
+    *   **State Management & Isolation**: Manages chat sessions, messages, and UI toggles using React `useState` and `useRef`. Implements isolated session tracking to allow simultaneous query generation across multiple chat sessions without state leakage.
     *   **Local Storage Sync**: Persists chat history across sessions using `localStorage`.
-    *   **Dynamic UI**: Renders the "Agentic Execution Paths" debugging block and mathematical formulas (via `react-markdown` + `rehype-katex`).
+    *   **Dynamic UI**: Renders the "Retrieval Execution Pipeline" debugging block and mathematical formulas (via `react-markdown` + `rehype-katex`).
     *   **Suggested Questions**: Dynamically shuffles and renders clickable suggested questions on empty states.
 *   **`src/app/globals.css`**: Tailwind directives and custom scrollbar/markdown styling.
 *   **`src/lib/api.ts`**: The Axios-based API client that connects the frontend to the Render backend, handling stream connections and URL sanitization.
