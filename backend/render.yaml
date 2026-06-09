@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: carbontatva-backend
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: MISTRAL_MODEL
+        value: mistral-small-latest
+      - key: EMBEDDING_MODEL
+        value: BAAI/bge-large-en-v1.5
+      - key: RERANKER_MODEL
+        value: BAAI/bge-reranker-base
+      - key: ENABLE_COLBERT
+        value: false
+      - key: ENABLE_HYDE
+        value: false
+      - key: ENABLE_MULTI_QUERY
+        value: true
+      - key: ENABLE_VERIFICATION
+        value: true
+      - key: DEFAULT_RETRIEVAL_MODE
+        value: auto
+      # Note: MISTRAL_API_KEY must be added manually in the Render dashboard
+      # Note: FRONTEND_ORIGIN must be added manually (e.g., your Vercel URL)

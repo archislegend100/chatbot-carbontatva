@@ -1,0 +1,32 @@
+[
+  {
+    "query": "What is the formula for boiler efficiency by indirect method?",
+    "category": "formula",
+    "expected_keywords": ["efficiency", "heat loss", "radiation", "blowdown"]
+  },
+  {
+    "query": "Give me a checklist for compressed air energy audit.",
+    "category": "checklist",
+    "expected_keywords": ["leakage", "pressure", "receiver", "filters"]
+  },
+  {
+    "query": "Why is the boiler efficiency low despite good fuel quality?",
+    "category": "troubleshoot",
+    "expected_keywords": ["excess air", "scale", "flue gas temperature"]
+  },
+  {
+    "query": "Compare VFD and fluid coupling for pump speed control.",
+    "category": "comparison",
+    "expected_keywords": ["efficiency", "slip", "losses", "cost"]
+  },
+  {
+    "query": "What are the recommended lux levels for general office work?",
+    "category": "table_lookup",
+    "expected_keywords": ["300", "500", "lux"]
+  },
+  {
+    "query": "What is Specific Energy Consumption (SEC)?",
+    "category": "qa",
+    "expected_keywords": ["energy", "production", "ratio"]
+  }
+]

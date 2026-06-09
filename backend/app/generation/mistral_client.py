@@ -1,118 +1,96 @@
-from __future__ import annotations
-
-import json
-from typing import AsyncGenerator, Optional
-
 import httpx
+import logging
+from typing import Optional, AsyncGenerator
+from app.config.settings import settings
 
-from app.core.logging import get_logger
+logger = logging.getLogger(__name__)
 
-logger = get_logger(__name__)
-
-MISTRAL_API_URL = "https://api.mistral.ai/v1/chat/completions"
-DEFAULT_TIMEOUT = 60.0
-
+class MistralAPIError(Exception):
+    pass
 
 class MistralClient:
-    def __init__(self, api_key: str, model: str = "mistral-small-latest"):
-        self.api_key = api_key
-        self.model = model
-        self._headers = {
-            "Authorization": f"Bearer {api_key}",
+    def __init__(self):
+        self.api_key = settings.MISTRAL_API_KEY
+        self.model = settings.MISTRAL_MODEL
+        self.base_url = "https://api.mistral.ai/v1"
+        self.headers = {
+            "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json",
+            "Accept": "application/json"
         }
-        logger.info(f"MistralClient initialized: model={model}")
 
-    def _payload(
-        self,
-        system_prompt: str,
-        user_prompt: str,
-        max_tokens: int,
-        temperature: float,
-        stream: bool = False,
-        json_mode: bool = False,
-    ) -> dict:
-        payload: dict = {
+    async def generate(self, prompt: str, system_prompt: Optional[str] = None) -> str:
+        """Non-streaming text generation."""
+        if not self.api_key:
+            raise MistralAPIError("MISTRAL_API_KEY is not set.")
+            
+        messages = []
+        if system_prompt:
+            messages.append({"role": "system", "content": system_prompt})
+        messages.append({"role": "user", "content": prompt})
+
+        payload = {
             "model": self.model,
-            "messages": [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt},
-            ],
-            "max_tokens": max_tokens,
-            "temperature": temperature,
-            "stream": stream,
+            "messages": messages,
+            "temperature": settings.MISTRAL_TEMPERATURE,
+            "max_tokens": settings.MISTRAL_MAX_TOKENS,
+            "stream": False
         }
-        if json_mode:
-            payload["response_format"] = {"type": "json_object"}
-        return payload
 
-    async def generate(
-        self,
-        system_prompt: str,
-        user_prompt: str,
-        max_tokens: int = 1200,
-        temperature: float = 0.15,
-        json_mode: bool = False,
-    ) -> str:
-        payload = self._payload(
-            system_prompt, user_prompt, max_tokens, temperature, json_mode=json_mode
-        )
-        try:
-            async with httpx.AsyncClient(timeout=DEFAULT_TIMEOUT) as client:
-                resp = await client.post(MISTRAL_API_URL, json=payload, headers=self._headers)
-                resp.raise_for_status()
-                return resp.json()["choices"][0]["message"]["content"]
-        except httpx.HTTPStatusError as e:
-            logger.error(f"Mistral API error {e.response.status_code}: {e.response.text}")
-            raise RuntimeError(f"Mistral API error: {e.response.status_code}")
-        except httpx.TimeoutException:
-            logger.error("Mistral request timed out")
-            raise RuntimeError("Mistral API request timed out.")
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            try:
+                response = await client.post(
+                    f"{self.base_url}/chat/completions",
+                    headers=self.headers,
+                    json=payload
+                )
+                response.raise_for_status()
+                data = response.json()
+                return data["choices"][0]["message"]["content"]
+            except httpx.HTTPStatusError as e:
+                logger.error(f"Mistral API Status Error: {e.response.status_code}")
+                raise MistralAPIError(f"Mistral API Error. Please check your configuration.")
+            except httpx.RequestError as e:
+                logger.error(f"Mistral API Request Error: {str(e)}")
+                raise MistralAPIError("Failed to communicate with Mistral API.")
 
-    async def stream(
-        self,
-        system_prompt: str,
-        user_prompt: str,
-        max_tokens: int = 1200,
-        temperature: float = 0.15,
-    ) -> AsyncGenerator[str, None]:
-        payload = self._payload(
-            system_prompt, user_prompt, max_tokens, temperature, stream=True
-        )
-        try:
-            async with httpx.AsyncClient(timeout=DEFAULT_TIMEOUT) as client:
-                async with client.stream(
-                    "POST", MISTRAL_API_URL, json=payload, headers=self._headers
-                ) as response:
+    async def generate_stream(self, prompt: str, system_prompt: Optional[str] = None) -> AsyncGenerator[str, None]:
+        """Streaming text generation."""
+        if not self.api_key:
+            raise MistralAPIError("MISTRAL_API_KEY is not set.")
+
+        messages = []
+        if system_prompt:
+            messages.append({"role": "system", "content": system_prompt})
+        messages.append({"role": "user", "content": prompt})
+
+        payload = {
+            "model": self.model,
+            "messages": messages,
+            "temperature": settings.MISTRAL_TEMPERATURE,
+            "max_tokens": settings.MISTRAL_MAX_TOKENS,
+            "stream": True
+        }
+
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            try:
+                async with client.stream("POST", f"{self.base_url}/chat/completions", headers=self.headers, json=payload) as response:
                     response.raise_for_status()
-                    async for line in response.aiter_lines():
-                        if not line.startswith("data:"):
-                            continue
-                        data = line[len("data:"):].strip()
-                        if data == "[DONE]":
-                            break
-                        try:
-                            chunk = json.loads(data)
-                            delta = chunk["choices"][0].get("delta", {})
-                            token = delta.get("content", "")
-                            if token:
-                                yield token
-                        except (json.JSONDecodeError, KeyError):
-                            continue
-        except httpx.HTTPStatusError as e:
-            yield f"\n\n[Error: Mistral API {e.response.status_code}]"
-        except httpx.ConnectError:
-            yield "\n\n[Error: Cannot reach Mistral API. Check connectivity and MISTRAL_API_KEY.]"
-        except Exception as e:
-            yield f"\n\n[Generation error: {e}]"
+                    async for chunk in response.aiter_lines():
+                        if chunk.startswith("data: "):
+                            data = chunk[6:]
+                            if data == "[DONE]":
+                                break
+                            import json
+                            try:
+                                parsed = json.loads(data)
+                                content = parsed["choices"][0]["delta"].get("content", "")
+                                if content:
+                                    yield content
+                            except json.JSONDecodeError:
+                                continue
+            except Exception as e:
+                logger.error(f"Mistral Streaming Error: {str(e)}")
+                yield " [Error: Communication with Mistral API failed.]"
 
-    async def generate_json(
-        self,
-        system_prompt: str,
-        user_prompt: str,
-        max_tokens: int = 400,
-        temperature: float = 0.0,
-    ) -> str:
-        return await self.generate(
-            system_prompt, user_prompt, max_tokens, temperature, json_mode=True
-        )
+mistral_client = MistralClient()

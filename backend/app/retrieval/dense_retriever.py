@@ -1,80 +1,56 @@
-"""
-retrieval/dense_retriever.py
-=============================
-Dense vector retrieval from ChromaDB.
-
-Wraps VectorStore.query() with a clean retrieval interface
-that accepts typed queries and returns sorted results.
-"""
-
-from __future__ import annotations
-
-from typing import Any, Optional
-
-from app.indexing.embedder import Embedder
-from app.indexing.vector_store import VectorStore
-from app.core.config import settings
-from app.core.logging import get_logger
-
-logger = get_logger(__name__)
-
+from typing import List, Dict, Any
+import chromadb
+from app.indexing.embedding_service import embedding_service
+from app.routing.query_router import QueryProfile
 
 class DenseRetriever:
-    """
-    Retrieves chunks using dense vector similarity search.
+    def __init__(self, persist_directory="data/vector_store"):
+        self.client = chromadb.PersistentClient(path=persist_directory)
+        # Using a unified collection for both domains
+        self.collection = self.client.get_or_create_collection(name="carbontatva_docs")
 
-    Args:
-        embedder: Embedder instance.
-        vector_store: VectorStore instance.
-        default_top_k: Default number of results.
-    """
+    async def search(self, query: str, top_k: int = 15, query_profile: QueryProfile = None) -> List[Dict[str, Any]]:
+        query_embedding = embedding_service.embed_text(query)
+        
+        where_filter = {}
+        # Optional: Apply domain filter if domain is strictly known and not mixed
+        # if query_profile and query_profile.utility_domain in ["thermal", "electrical"]:
+        #    where_filter["utility_domain"] = query_profile.utility_domain
+            
+        # Optional: Boost certain chunks based on intent via post-processing or hybrid weighing
+        # Chromadb doesn't natively support dynamic boosting on boolean metadata, so we retrieve more and rerank.
 
-    def __init__(
-        self,
-        embedder: Embedder,
-        vector_store: VectorStore,
-        default_top_k: int = settings.DENSE_TOP_K,
-    ):
-        self.embedder = embedder
-        self.vector_store = vector_store
-        self.default_top_k = default_top_k
-
-    def retrieve(
-        self,
-        query: str,
-        top_k: Optional[int] = None,
-        domain_filter: Optional[str] = None,
-        chunk_types: Optional[list[str]] = None,
-    ) -> list[dict[str, Any]]:
-        """
-        Retrieve top-k chunks by dense similarity.
-
-        Args:
-            query: Raw query text.
-            top_k: Number of results.
-            domain_filter: "thermal" or "electrical" (or None for both).
-            chunk_types: Filter to specific chunk types.
-
-        Returns:
-            List of result dicts sorted by score descending.
-        """
-        k = top_k or self.default_top_k
-        query_embedding = self.embedder.embed_query(query)
-
-        # Build ChromaDB where clause
-        where: dict = {}
-        if domain_filter and domain_filter in ("thermal", "electrical"):
-            where["utility_domain"] = domain_filter
-
-        results = self.vector_store.query(
-            query_embedding=query_embedding,
-            top_k=k,
-            where=where if where else None,
-            chunk_types=chunk_types,
+        results = self.collection.query(
+            query_embeddings=[query_embedding],
+            n_results=top_k,
+            where=where_filter if where_filter else None
         )
 
-        # Tag results with retrieval source
-        for r in results:
-            r["retrieval_source"] = "dense"
+        candidates = []
+        if results and results["ids"] and len(results["ids"][0]) > 0:
+            for i in range(len(results["ids"][0])):
+                doc_id = results["ids"][0][i]
+                doc_text = results["documents"][0][i]
+                metadata = results["metadatas"][0][i]
+                distance = results["distances"][0][i] if "distances" in results and results["distances"] else 0.0
+                
+                # Boost specific chunk types if requested
+                score_boost = 0.0
+                if query_profile:
+                    chunk_type = metadata.get("chunk_type", "")
+                    if query_profile.needs_table and chunk_type == "table_chunk":
+                        score_boost += 0.2
+                    if query_profile.needs_formula and chunk_type == "formula_chunk":
+                        score_boost += 0.2
 
-        return results
+                candidates.append({
+                    "chunk_id": doc_id,
+                    "text": doc_text,
+                    "metadata": metadata,
+                    "score": (1.0 / (1.0 + distance)) + score_boost, # Convert distance to similarity-like score
+                    "source": "dense"
+                })
+
+        return candidates
+
+dense_retriever = DenseRetriever()
