@@ -19,6 +19,9 @@ class Settings(BaseSettings):
     # Feature Toggles
     ENABLE_COLBERT: bool = False
     COLBERT_INDEX_PATH: str = "data/indexes/colbert"
+    CHROMA_DIR_ABS: str = "data/indexes/chroma"
+    BM25_INDEX_PATH: str = "data/indexes/bm25_index.pkl"
+    CHUNK_DATA_PATH: str = "data/indexes/chunks.jsonl"
     
     ENABLE_HYDE: bool = False
     ENABLE_MULTI_QUERY: bool = True

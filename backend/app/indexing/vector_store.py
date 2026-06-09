@@ -27,8 +27,15 @@ from typing import Any, Optional
 import chromadb
 from chromadb.config import Settings as ChromaSettings
 
-from app.core.config import settings
-from app.core.logging import get_logger
+from app.config.settings import settings
+import logging
+
+def get_logger(name):
+    logger = logging.getLogger(name)
+    if not logger.handlers:
+        logger.addHandler(logging.StreamHandler())
+        logger.setLevel(logging.INFO)
+    return logger
 from app.models.schemas import DocumentChunk, SourceCitation, UtilityDomain
 
 logger = get_logger(__name__)
@@ -48,7 +55,7 @@ class VectorStore:
     """
 
     def __init__(self, persist_dir: Optional[Path] = None):
-        self.persist_dir = persist_dir or settings.CHROMA_DIR_ABS
+        self.persist_dir = Path(persist_dir or settings.CHROMA_DIR_ABS)
         self.persist_dir.mkdir(parents=True, exist_ok=True)
         self._client: Optional[chromadb.ClientAPI] = None
         self._collection = None

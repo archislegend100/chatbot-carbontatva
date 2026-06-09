@@ -31,8 +31,15 @@ import pickle
 from pathlib import Path
 from typing import Any, Optional
 
-from app.core.config import settings
-from app.core.logging import get_logger
+from app.config.settings import settings
+import logging
+
+def get_logger(name):
+    logger = logging.getLogger(name)
+    if not logger.handlers:
+        logger.addHandler(logging.StreamHandler())
+        logger.setLevel(logging.INFO)
+    return logger
 from app.models.schemas import DocumentChunk
 
 logger = get_logger(__name__)

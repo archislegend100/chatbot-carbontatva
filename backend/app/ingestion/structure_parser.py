@@ -23,7 +23,14 @@ import re
 from dataclasses import dataclass, field
 from typing import Optional
 from app.models.schemas import ParsedDocument, ParsedPage
-from app.core.logging import get_logger
+import logging
+
+def get_logger(name):
+    logger = logging.getLogger(name)
+    if not logger.handlers:
+        logger.addHandler(logging.StreamHandler())
+        logger.setLevel(logging.INFO)
+    return logger
 
 logger = get_logger(__name__)
 

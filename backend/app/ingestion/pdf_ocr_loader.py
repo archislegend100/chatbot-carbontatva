@@ -34,7 +34,14 @@ from typing import Optional
 
 import fitz
 
-from app.core.logging import get_logger
+import logging
+
+def get_logger(name):
+    logger = logging.getLogger(name)
+    if not logger.handlers:
+        logger.addHandler(logging.StreamHandler())
+        logger.setLevel(logging.INFO)
+    return logger
 from app.ingestion.ocr_engine import ocr_page, OCR_DPI
 from app.ingestion.ocr_cache import OCRCache
 from app.models.schemas import ParsedDocument, ParsedPage, UtilityDomain

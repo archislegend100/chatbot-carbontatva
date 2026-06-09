@@ -40,7 +40,14 @@ except ImportError:
     HAS_PDFPLUMBER = False
 
 from app.models.schemas import ParsedPage, ParsedDocument, UtilityDomain
-from app.core.logging import get_logger
+import logging
+
+def get_logger(name):
+    logger = logging.getLogger(name)
+    if not logger.handlers:
+        logger.addHandler(logging.StreamHandler())
+        logger.setLevel(logging.INFO)
+    return logger
 
 logger = get_logger(__name__)
 
