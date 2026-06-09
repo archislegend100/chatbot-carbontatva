@@ -87,11 +87,11 @@ export default function Home() {
     if (plan.use_verification) paths.push("Answer Verification");
 
     return (
-      <div className="mb-4">
-        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Search Path Used:</p>
+      <div className="mb-6">
+        <p className="text-[11px] font-mono text-zinc-500 uppercase tracking-widest mb-3">Execution Path</p>
         <div className="flex flex-wrap gap-2">
           {paths.map(p => (
-            <span key={p} className="px-2 py-1 bg-slate-100 text-slate-600 text-[11px] rounded-md border border-slate-200">
+            <span key={p} className="px-2.5 py-1 bg-zinc-800/50 text-zinc-300 text-[11px] font-medium rounded-sm border border-zinc-700/50">
               {p}
             </span>
           ))}
@@ -101,114 +101,132 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-[#fafafa] text-slate-900 font-sans flex flex-col items-center">
-      <header className="w-full max-w-5xl bg-white border-b border-slate-200 py-5 px-8 flex justify-between items-start md:items-center flex-col md:flex-row gap-4 shadow-sm z-10 sticky top-0">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-800">CarbonTatvaAI</h1>
-          <p className="text-sm text-slate-500 mt-1">Answers grounded in indexed BEE thermal and electrical utility manuals.</p>
+    <main className="min-h-screen bg-[#09090b] text-zinc-300 font-sans flex flex-col items-center selection:bg-zinc-800 selection:text-white">
+      {/* Background Subtle Grid - LangChain aesthetic */}
+      <div className="fixed inset-0 pointer-events-none bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
+      
+      {/* Top Header */}
+      <header className="w-full max-w-6xl py-6 px-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 z-10 sticky top-0 bg-[#09090b]/80 backdrop-blur-xl border-b border-zinc-800/50">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-md bg-zinc-100 flex items-center justify-center">
+            <span className="text-[#09090b] font-bold text-lg leading-none">C</span>
+          </div>
+          <div>
+            <h1 className="text-lg font-medium tracking-tight text-zinc-100">CarbonTatva</h1>
+            <p className="text-[11px] font-mono text-zinc-500 tracking-wider">INDUSTRIAL RAG COPILOT</p>
+          </div>
         </div>
         
-        <div className="flex flex-col items-end gap-2 w-full md:w-auto">
-          <div className="flex items-center gap-2 bg-slate-50 p-1.5 rounded-lg border border-slate-200 w-full md:w-auto justify-between md:justify-start">
-            <span className="text-xs font-medium text-slate-500 ml-2">Mode:</span>
-            <div className="flex gap-1">
-              {(["auto", "fast", "deep", "research"] as RetrievalMode[]).map((mode) => (
-                <button
-                  key={mode}
-                  onClick={() => setRetrievalMode(mode)}
-                  className={`px-3 py-1 text-xs font-medium rounded-md capitalize transition-colors ${
-                    retrievalMode === mode 
-                      ? 'bg-white text-blue-700 shadow-sm border border-slate-200' 
-                      : 'text-slate-600 hover:bg-slate-100'
-                  }`}
-                >
-                  {mode}
-                </button>
-              ))}
-            </div>
+        <div className="flex flex-col items-end gap-3 w-full md:w-auto">
+          <div className="flex items-center bg-zinc-900 rounded-md border border-zinc-800 p-1 w-full md:w-auto overflow-x-auto">
+            {(["auto", "fast", "deep", "research"] as RetrievalMode[]).map((mode) => (
+              <button
+                key={mode}
+                onClick={() => setRetrievalMode(mode)}
+                className={`px-4 py-1.5 text-[13px] font-medium rounded-sm capitalize transition-all duration-200 ${
+                  retrievalMode === mode 
+                    ? 'bg-zinc-100 text-zinc-900 shadow-sm' 
+                    : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50'
+                }`}
+              >
+                {mode}
+              </button>
+            ))}
           </div>
           <button 
             onClick={() => setShowAdvanced(!showAdvanced)}
-            className="text-xs text-blue-600 hover:text-blue-800 underline decoration-blue-200 underline-offset-4"
+            className="text-[11px] font-mono text-zinc-500 hover:text-zinc-300 transition-colors uppercase tracking-widest"
           >
-            {showAdvanced ? "Hide Advanced Settings" : "Show Advanced Settings"}
+            {showAdvanced ? "[- Hide Developer Settings]" : "[+ Show Developer Settings]"}
           </button>
         </div>
       </header>
 
+      {/* Advanced Settings Dropdown */}
       {showAdvanced && (
-        <div className="w-full max-w-5xl bg-white border-b border-slate-200 px-8 py-5 text-sm grid grid-cols-1 md:grid-cols-2 gap-6 shadow-inner">
+        <div className="w-full max-w-6xl bg-zinc-900/50 border-b border-zinc-800/50 px-6 py-8 text-sm grid grid-cols-1 md:grid-cols-2 gap-8 z-10 backdrop-blur-md">
           <div>
-            <h3 className="font-semibold text-slate-700 mb-3">Developer Overrides (Research Mode Only)</h3>
-            <div className="space-y-2">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" checked={forceColbert} onChange={e => setForceColbert(e.target.checked)} className="rounded text-blue-600 focus:ring-blue-500" />
-                <span className="text-slate-600">Force Precision Retrieval (ColBERT)</span>
-              </label>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" checked={forceHyde} onChange={e => setForceHyde(e.target.checked)} className="rounded text-blue-600 focus:ring-blue-500" />
-                <span className="text-slate-600">Force Semantic Expansion (HyDE)</span>
-              </label>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" checked={forceMultiQuery} onChange={e => setForceMultiQuery(e.target.checked)} className="rounded text-blue-600 focus:ring-blue-500" />
-                <span className="text-slate-600">Force Query Expansion (Multi-query)</span>
-              </label>
+            <h3 className="text-[11px] font-mono text-zinc-500 uppercase tracking-widest mb-4">Overrides (Research Only)</h3>
+            <div className="space-y-3">
+              {[
+                { label: "Force Precision Retrieval (ColBERT)", state: forceColbert, setter: setForceColbert },
+                { label: "Force Semantic Expansion (HyDE)", state: forceHyde, setter: setForceHyde },
+                { label: "Force Query Expansion (Multi-query)", state: forceMultiQuery, setter: setForceMultiQuery },
+              ].map((opt, i) => (
+                <label key={i} className="flex items-center gap-3 cursor-pointer group">
+                  <div className={`w-4 h-4 rounded-sm border flex items-center justify-center transition-colors ${opt.state ? 'bg-zinc-100 border-zinc-100' : 'border-zinc-700 group-hover:border-zinc-500'}`}>
+                    {opt.state && <span className="text-[#09090b] text-[10px]">✓</span>}
+                  </div>
+                  <input type="checkbox" checked={opt.state} onChange={e => opt.setter(e.target.checked)} className="hidden" />
+                  <span className="text-[13px] text-zinc-300 group-hover:text-zinc-100 transition-colors">{opt.label}</span>
+                </label>
+              ))}
             </div>
           </div>
           <div>
-            <h3 className="font-semibold text-slate-700 mb-3">Debug Output Controls</h3>
-            <div className="space-y-2">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" checked={showChunks} onChange={e => setShowChunks(e.target.checked)} className="rounded text-blue-600 focus:ring-blue-500" />
-                <span className="text-slate-600">Show Retrieved Chunks</span>
-              </label>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" checked={showScores} onChange={e => setShowScores(e.target.checked)} className="rounded text-blue-600 focus:ring-blue-500" />
-                <span className="text-slate-600">Show Retrieval Scores</span>
-              </label>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" checked={showLatency} onChange={e => setShowLatency(e.target.checked)} className="rounded text-blue-600 focus:ring-blue-500" />
-                <span className="text-slate-600">Show Latency Breakdown</span>
-              </label>
+            <h3 className="text-[11px] font-mono text-zinc-500 uppercase tracking-widest mb-4">Debug Output</h3>
+            <div className="space-y-3">
+              {[
+                { label: "Show Retrieved Chunks", state: showChunks, setter: setShowChunks },
+                { label: "Show Retrieval Scores", state: showScores, setter: setShowScores },
+                { label: "Show Latency Breakdown", state: showLatency, setter: setShowLatency },
+              ].map((opt, i) => (
+                <label key={i} className="flex items-center gap-3 cursor-pointer group">
+                  <div className={`w-4 h-4 rounded-sm border flex items-center justify-center transition-colors ${opt.state ? 'bg-zinc-100 border-zinc-100' : 'border-zinc-700 group-hover:border-zinc-500'}`}>
+                    {opt.state && <span className="text-[#09090b] text-[10px]">✓</span>}
+                  </div>
+                  <input type="checkbox" checked={opt.state} onChange={e => opt.setter(e.target.checked)} className="hidden" />
+                  <span className="text-[13px] text-zinc-300 group-hover:text-zinc-100 transition-colors">{opt.label}</span>
+                </label>
+              ))}
             </div>
           </div>
         </div>
       )}
 
-      <div className="flex-1 w-full max-w-4xl p-6 space-y-8 overflow-y-auto mt-4 pb-32">
+      {/* Main Chat Area */}
+      <div className="flex-1 w-full max-w-4xl p-6 space-y-10 overflow-y-auto mt-6 pb-40 z-0">
         {messages.length === 0 && (
-          <div className="text-center text-slate-500 mt-24">
-            <h2 className="text-2xl font-semibold mb-3 text-slate-700">How can I help you today?</h2>
-            <p>Ask about boiler efficiency, motors, compressed air, furnaces, power factor...</p>
+          <div className="flex flex-col items-center justify-center h-full mt-20 text-center opacity-80">
+            <div className="w-16 h-16 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center mb-6 shadow-2xl">
+              <span className="text-zinc-100 text-2xl">⚡</span>
+            </div>
+            <h2 className="text-3xl font-medium tracking-tight text-zinc-100 mb-4">How can I assist?</h2>
+            <p className="text-sm text-zinc-500 font-mono tracking-wide max-w-md">
+              Ask about boiler efficiency, motor performance, compressed air troubleshooting, or BEE compliance.
+            </p>
           </div>
         )}
 
         {messages.map((msg, idx) => (
-          <div key={idx} className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
+          <div key={idx} className={`flex flex-col w-full ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
             <div 
-              className={`max-w-[90%] rounded-xl p-5 ${
+              className={`max-w-[85%] rounded-2xl p-6 ${
                 msg.role === 'user' 
-                  ? 'bg-blue-600 text-white shadow-md' 
-                  : 'bg-white border border-slate-200 shadow-sm'
+                  ? 'bg-zinc-100 text-zinc-900 shadow-lg font-medium' 
+                  : 'bg-zinc-900/40 border border-zinc-800/50 backdrop-blur-sm'
               }`}
             >
               {msg.role === 'user' ? (
-                <p className="whitespace-pre-wrap text-[15px]">{msg.content}</p>
+                <p className="whitespace-pre-wrap text-[15px] leading-relaxed">{msg.content}</p>
               ) : (
                 msg.error ? (
-                  <p className="text-red-600 font-medium">{msg.error}</p>
+                  <p className="text-red-400 font-mono text-sm">{msg.error}</p>
                 ) : (
-                  <div className="space-y-5">
+                  <div className="space-y-6">
                     
                     {/* Return Debug Metadata Display */}
                     {(retrievalMode === "research" || showLatency || showChunks || showScores) && msg.data.debug && (
-                      <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
-                        <h4 className="text-sm font-bold text-slate-700 mb-3 border-b border-slate-200 pb-2">Developer Details</h4>
+                      <div className="bg-[#09090b] p-5 rounded-xl border border-zinc-800 mb-6 font-mono">
+                        <div className="flex items-center gap-2 mb-4">
+                          <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                          <h4 className="text-[11px] text-zinc-400 uppercase tracking-widest">System Diagnostics</h4>
+                        </div>
                         
                         {msg.data.debug.warnings?.length > 0 && (
-                          <div className="mb-4">
+                          <div className="mb-5 space-y-2">
                             {msg.data.debug.warnings.map((w: string, i: number) => (
-                              <p key={i} className="text-xs text-amber-600 bg-amber-50 p-2 rounded border border-amber-100 mb-1">{w}</p>
+                              <p key={i} className="text-[11px] text-amber-500/90 bg-amber-500/10 p-2.5 rounded-sm border border-amber-500/20">{w}</p>
                             ))}
                           </div>
                         )}
@@ -216,31 +234,40 @@ export default function Home() {
                         {renderRetrievalPath(msg.data.retrieval_plan)}
 
                         {msg.data.debug.latency_ms && Object.keys(msg.data.debug.latency_ms).length > 0 && (
-                          <details className="text-xs text-slate-600 mb-2">
-                            <summary className="cursor-pointer font-medium hover:text-slate-800">Latency Breakdown ({msg.data.debug.latency_ms.total?.toFixed(0)}ms)</summary>
-                            <pre className="mt-2 p-2 bg-white rounded border border-slate-200 overflow-x-auto">
+                          <details className="text-[11px] text-zinc-500 mb-3 group">
+                            <summary className="cursor-pointer hover:text-zinc-300 transition-colors list-none flex items-center gap-2">
+                              <span className="text-zinc-700 group-open:rotate-90 transition-transform">▶</span>
+                              Latency Breakdown (<span className="text-zinc-300">{msg.data.debug.latency_ms.total?.toFixed(0)}ms</span>)
+                            </summary>
+                            <pre className="mt-3 p-3 bg-zinc-900 rounded-sm border border-zinc-800 overflow-x-auto text-zinc-400">
                               {JSON.stringify(msg.data.debug.latency_ms, null, 2)}
                             </pre>
                           </details>
                         )}
 
                         {msg.data.debug.scores?.length > 0 && (
-                          <details className="text-xs text-slate-600 mb-2">
-                            <summary className="cursor-pointer font-medium hover:text-slate-800">Retrieval Scores</summary>
-                            <pre className="mt-2 p-2 bg-white rounded border border-slate-200 overflow-x-auto">
+                          <details className="text-[11px] text-zinc-500 mb-3 group">
+                            <summary className="cursor-pointer hover:text-zinc-300 transition-colors list-none flex items-center gap-2">
+                              <span className="text-zinc-700 group-open:rotate-90 transition-transform">▶</span>
+                              Retrieval Scores
+                            </summary>
+                            <pre className="mt-3 p-3 bg-zinc-900 rounded-sm border border-zinc-800 overflow-x-auto text-zinc-400">
                               {JSON.stringify(msg.data.debug.scores, null, 2)}
                             </pre>
                           </details>
                         )}
                         
                         {msg.data.debug.retrieved_chunks?.length > 0 && (
-                          <details className="text-xs text-slate-600">
-                            <summary className="cursor-pointer font-medium hover:text-slate-800">Retrieved Chunks ({msg.data.debug.retrieved_chunks.length})</summary>
-                            <div className="mt-2 space-y-2">
+                          <details className="text-[11px] text-zinc-500 group">
+                            <summary className="cursor-pointer hover:text-zinc-300 transition-colors list-none flex items-center gap-2">
+                              <span className="text-zinc-700 group-open:rotate-90 transition-transform">▶</span>
+                              Retrieved Chunks ({msg.data.debug.retrieved_chunks.length})
+                            </summary>
+                            <div className="mt-3 space-y-3">
                               {msg.data.debug.retrieved_chunks.map((chunk: any, i: number) => (
-                                <div key={i} className="bg-white p-2 rounded border border-slate-200 overflow-x-auto">
-                                  <p className="font-mono text-[10px] text-blue-600 mb-1">{chunk.chunk_id}</p>
-                                  <p className="text-[11px] whitespace-pre-wrap">{chunk.text}</p>
+                                <div key={i} className="bg-zinc-900 p-3 rounded-sm border border-zinc-800 overflow-x-auto">
+                                  <p className="text-[9px] text-zinc-500 mb-2">ID: {chunk.chunk_id}</p>
+                                  <p className="text-[11px] text-zinc-400 whitespace-pre-wrap leading-relaxed">{chunk.text}</p>
                                 </div>
                               ))}
                             </div>
@@ -250,23 +277,23 @@ export default function Home() {
                     )}
 
                     {/* Answer Area */}
-                    <div className="prose prose-slate prose-sm max-w-none">
+                    <div className="prose prose-invert prose-zinc max-w-none prose-p:leading-relaxed prose-pre:bg-zinc-900 prose-pre:border prose-pre:border-zinc-800">
                       <ReactMarkdown>{msg.data.answer}</ReactMarkdown>
                     </div>
                     
                     {/* Citations Area */}
                     {msg.data.citations && msg.data.citations.length > 0 && (
-                      <div className="pt-4 mt-2">
-                        <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Sources</h4>
-                        <div className="flex flex-wrap gap-2">
+                      <div className="pt-6 mt-4 border-t border-zinc-800/50">
+                        <h4 className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest mb-4">Grounding Sources</h4>
+                        <div className="flex flex-wrap gap-3">
                           {msg.data.citations.map((cit: any, i: number) => (
-                            <details key={i} className="group relative text-xs bg-slate-50 border border-slate-200 rounded-md p-2 max-w-full lg:max-w-[48%] flex-1">
-                              <summary className="cursor-pointer font-medium text-blue-600 hover:text-blue-800 transition-colors list-none flex items-center gap-1">
-                                <span className="text-slate-400 mr-1">[{i+1}]</span>
-                                {cit.book}, {cit.chapter && <span className="truncate max-w-[150px] inline-block align-bottom">{cit.chapter}</span>}
-                                {cit.page > 0 && `, pg ${cit.page}`}
+                            <details key={i} className="group relative text-sm bg-zinc-900 border border-zinc-800 hover:border-zinc-700 transition-colors rounded-lg p-3 max-w-full lg:max-w-[48%] flex-1">
+                              <summary className="cursor-pointer font-medium text-zinc-300 list-none flex items-center gap-2">
+                                <span className="flex-shrink-0 w-5 h-5 rounded bg-zinc-800 text-zinc-400 flex items-center justify-center text-[10px]">{i+1}</span>
+                                <span className="truncate">{cit.book}</span>
+                                {cit.page > 0 && <span className="text-zinc-500 text-xs shrink-0 bg-zinc-950 px-1.5 py-0.5 rounded">pg {cit.page}</span>}
                               </summary>
-                              <div className="mt-3 text-slate-600 font-mono text-[10px] bg-white p-3 rounded border border-slate-100 shadow-sm whitespace-pre-wrap">
+                              <div className="mt-4 text-zinc-400 font-mono text-[11px] bg-[#09090b] p-4 rounded border border-zinc-800 whitespace-pre-wrap leading-relaxed overflow-x-auto">
                                 {cit.text_snippet}
                               </div>
                             </details>
@@ -282,24 +309,27 @@ export default function Home() {
         ))}
 
         {loading && (
-          <div className="flex items-start">
-            <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex items-center space-x-2">
-              <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
-              <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce delay-100"></div>
-              <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce delay-200"></div>
-              <span className="text-sm text-slate-500 ml-2 font-medium">Searching BEE Manuals...</span>
+          <div className="flex items-start w-full">
+            <div className="bg-zinc-900/40 border border-zinc-800/50 backdrop-blur-sm rounded-2xl p-6 shadow-sm flex items-center space-x-3">
+              <div className="flex space-x-1">
+                <div className="w-1.5 h-1.5 bg-zinc-500 rounded-full animate-bounce"></div>
+                <div className="w-1.5 h-1.5 bg-zinc-500 rounded-full animate-bounce delay-150"></div>
+                <div className="w-1.5 h-1.5 bg-zinc-500 rounded-full animate-bounce delay-300"></div>
+              </div>
+              <span className="text-[13px] font-mono text-zinc-400 tracking-wide uppercase">Processing...</span>
             </div>
           </div>
         )}
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="w-full bg-white/80 backdrop-blur-md border-t border-slate-200 p-4 fixed bottom-0 z-20 shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.05)]">
-        <form onSubmit={handleSubmit} className="max-w-4xl mx-auto flex space-x-3">
+      {/* Input Area */}
+      <div className="w-full max-w-4xl fixed bottom-8 z-20 px-6">
+        <form onSubmit={handleSubmit} className="relative flex items-center shadow-2xl">
           <input
             type="text"
-            className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-5 py-4 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-inner text-[15px]"
-            placeholder="Ask an engineering question..."
+            className="w-full bg-zinc-900/80 backdrop-blur-xl border border-zinc-800 text-zinc-100 placeholder:text-zinc-500 rounded-2xl pl-6 pr-32 py-5 focus:outline-none focus:ring-1 focus:ring-zinc-600 focus:border-zinc-600 transition-all text-[15px]"
+            placeholder="Query the engineering knowledge base..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             disabled={loading}
@@ -307,7 +337,7 @@ export default function Home() {
           <button
             type="submit"
             disabled={loading || !query.trim()}
-            className="bg-blue-600 text-white px-8 py-4 rounded-xl font-medium hover:bg-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg active:scale-95"
+            className="absolute right-2 top-2 bottom-2 bg-zinc-100 text-[#09090b] px-6 rounded-xl font-semibold hover:bg-white transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] text-[14px]"
           >
             Send
           </button>
