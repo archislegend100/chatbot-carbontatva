@@ -1,7 +1,6 @@
 import re
 import nltk
 from typing import List, Dict, Any
-from sentence_transformers import SentenceTransformer
 from app.config.settings import settings
 
 # Download punkt lazily
@@ -19,6 +18,7 @@ class ContextCompressor:
 
     def _get_model(self):
         if self._model is None:
+            from sentence_transformers import SentenceTransformer
             self._model = SentenceTransformer(self.model_name)
         return self._model
 
