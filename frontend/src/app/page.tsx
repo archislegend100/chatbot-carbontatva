@@ -40,7 +40,12 @@ export default function Home() {
 
   const [query, setQuery] = useState("");
   const [messages, setMessages] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loadingSessions, setLoadingSessions] = useState<Set<string>>(new Set());
+  const currentSessionIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    currentSessionIdRef.current = currentSessionId;
+  }, [currentSessionId]);
   
   // Layout State
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -110,61 +115,74 @@ export default function Home() {
   }, [sessions]);
 
   // Update the current session when messages or expandedThoughts change
+  // We only sync expandedThoughts here now, as messages are handled explicitly
   useEffect(() => {
-    if (!currentSessionId && messages.length > 0) {
-      // First message of a new session
-      const newId = Date.now().toString();
-      const firstMsgText = messages[0]?.content || "New Chat";
-      const fallbackTitle = firstMsgText.slice(0, 30) + (firstMsgText.length > 30 ? "..." : "");
-      
-      const newSession: ChatSession = {
-        id: newId,
-        title: fallbackTitle,
-        messages,
-        expandedThoughts,
-        timestamp: Date.now()
-      };
-      setSessions(prev => [newSession, ...prev]);
-      setCurrentSessionId(newId);
+    if (currentSessionId) {
+      setSessions(prev => prev.map(s => 
+        s.id === currentSessionId 
+          ? { ...s, expandedThoughts } 
+          : s
+      ));
+    }
+  }, [expandedThoughts]);
 
-      // Asynchronously fetch intelligent title
-      const fetchTitle = async () => {
+  const executeSearch = async (searchQuery: string) => {
+    if (!searchQuery.trim()) return;
+
+    let targetId = currentSessionId;
+    let isNewSession = false;
+
+    if (!targetId) {
+      targetId = Date.now().toString();
+      isNewSession = true;
+      setCurrentSessionId(targetId);
+      currentSessionIdRef.current = targetId;
+    }
+    const finalTargetId = targetId;
+
+    const userMsg = { role: "user", content: searchQuery };
+    
+    // Update local view immediately for optimistic UI
+    setMessages((prev) => [...prev, userMsg]);
+    setQuery("");
+    
+    setLoadingSessions(prev => {
+      const next = new Set(prev);
+      next.add(finalTargetId);
+      return next;
+    });
+
+    if (isNewSession) {
+      const fallbackTitle = searchQuery.slice(0, 30) + (searchQuery.length > 30 ? "..." : "");
+      setSessions(prev => [{
+        id: finalTargetId,
+        title: fallbackTitle,
+        messages: [userMsg],
+        expandedThoughts: {},
+        timestamp: Date.now()
+      }, ...prev]);
+      
+      // Async fetch title
+      setTimeout(async () => {
         try {
           const rawApiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
           const apiUrl = rawApiUrl.replace(/\/$/, "");
           const res = await fetch(`${apiUrl}/chat/title`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ query: firstMsgText }),
+            body: JSON.stringify({ query: searchQuery }),
           });
           if (res.ok) {
             const data = await res.json();
-            setSessions(prev => prev.map(s => 
-              s.id === newId ? { ...s, title: data.title } : s
-            ));
+            setSessions(prev => prev.map(s => s.id === finalTargetId ? { ...s, title: data.title } : s));
           }
         } catch (e) {
           console.error("Failed to generate title", e);
         }
-      };
-      fetchTitle();
-    } else if (currentSessionId) {
-      // Update existing session
-      setSessions(prev => prev.map(s => 
-        s.id === currentSessionId 
-          ? { ...s, messages, expandedThoughts } 
-          : s
-      ));
+      }, 0);
+    } else {
+      setSessions(prev => prev.map(s => s.id === finalTargetId ? { ...s, messages: [...(s.messages || []), userMsg] } : s));
     }
-  }, [messages, expandedThoughts]);
-
-  const executeSearch = async (searchQuery: string) => {
-    if (!searchQuery.trim()) return;
-
-    const userMsg = { role: "user", content: searchQuery };
-    setMessages((prev) => [...prev, userMsg]);
-    setQuery("");
-    setLoading(true);
 
     try {
       const rawApiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -191,11 +209,26 @@ export default function Home() {
       if (!res.ok) throw new Error("API Error");
 
       const data = await res.json();
-      setMessages((prev) => [...prev, { role: "assistant", data }]);
+      const assistantMsg = { role: "assistant", data };
+      
+      setSessions(prev => prev.map(s => s.id === finalTargetId ? { ...s, messages: [...(s.messages || []), assistantMsg] } : s));
+      
+      if (currentSessionIdRef.current === finalTargetId) {
+        setMessages((prev) => [...prev, assistantMsg]);
+      }
     } catch (error) {
-      setMessages((prev) => [...prev, { role: "assistant", error: "Failed to connect to the backend API." }]);
+      const errorMsg = { role: "assistant", error: "Failed to connect to the backend API." };
+      setSessions(prev => prev.map(s => s.id === finalTargetId ? { ...s, messages: [...(s.messages || []), errorMsg] } : s));
+      
+      if (currentSessionIdRef.current === finalTargetId) {
+        setMessages((prev) => [...prev, errorMsg]);
+      }
     } finally {
-      setLoading(false);
+      setLoadingSessions(prev => {
+        const next = new Set(prev);
+        next.delete(finalTargetId);
+        return next;
+      });
     }
   };
 
@@ -466,7 +499,7 @@ export default function Home() {
               </div>
             ))}
 
-            {loading && (
+            {loadingSessions.has(currentSessionId || "") && (
               <div className="flex items-start w-full">
                 <div className="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-950/50 flex items-center justify-center border border-emerald-100 dark:border-emerald-900/50 shadow-sm mr-4 mt-1 flex-shrink-0">
                   <Leaf className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
@@ -534,22 +567,22 @@ export default function Home() {
               </div>
 
               <textarea
-                className="flex-1 bg-transparent text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 resize-none py-2.5 px-1 focus:outline-none min-h-[44px] max-h-32 text-[15px] scrollbar-hide font-medium leading-relaxed"
+                className="flex-1 bg-transparent text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 border-none focus:ring-0 resize-none py-3 px-4 text-[15px]"
                 placeholder="Message CarbonTatva..."
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
+                disabled={loadingSessions.has(currentSessionId || "")}
+                rows={1}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
                     handleSubmit(e);
                   }
                 }}
-                disabled={loading}
-                rows={1}
               />
               <button
                 type="submit"
-                disabled={loading || !query.trim()}
+                disabled={loadingSessions.has(currentSessionId || "") || !query.trim()}
                 className="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center hover:bg-emerald-600 transition-colors disabled:opacity-50 disabled:bg-gray-200 dark:disabled:bg-gray-800 disabled:text-gray-400 dark:disabled:text-gray-600 flex-shrink-0 shadow-sm"
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 10l7-7m0 0l7 7m-7-7v18" /></svg>
