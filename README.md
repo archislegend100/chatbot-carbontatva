@@ -1,57 +1,45 @@
-# CarbonTatva Industrial Energy Efficiency Copilot
+# CarbonTatva Copilot
 
-A professional, production-style Retrieval-Augmented Generation (RAG) chatbot over the Bureau of Energy Efficiency (BEE) Thermal and Electrical Utility manuals. 
+CarbonTatva is an industrial energy-efficiency AI assistant built on a Retrieval-Augmented Generation (RAG) architecture. It is designed to provide professional, engineering-focused answers strictly grounded in the Bureau of Energy Efficiency (BEE) Thermal and Electrical Utility manuals.
 
 ## Features
-- **Mistral API** exclusively for high-quality, grounded engineering answers.
-- **Advanced Multi-Granular Chunking** (semantic, parent section, table, formula).
-- **Hybrid Retrieval** (Dense `bge-large-en-v1.5` + Sparse BM25 with synonym expansion).
-- **Reciprocal Rank Fusion (RRF)** + Cross-Encoder Reranking (`bge-reranker-base`).
-- **Latency-Aware Execution Flow** (Fast path for simple facts, Advanced path for hard troubleshooting).
-- **Context Compression** (Extractive, preserving tables and formulas).
 
-## Tech Stack
-- **Backend:** FastAPI, Python 3.10+, LangChain primitives.
-- **Retrieval:** ChromaDB, rank-bm25, sentence-transformers.
-- **Frontend:** React / Vite.
+- **Grounded Responses**: Exclusively utilizes the Mistral API to generate technically accurate, context-aware answers.
+- **Dynamic Retrieval Routing**: Automatically adjusts retrieval depth (auto, fast, deep, research) based on query complexity.
+- **Advanced Context Processing**: Uses Reciprocal Rank Fusion (RRF), Cross-Encoder Reranking, and Context Compression.
+- **Persistent Chat Sessions**: Features a ChatGPT-style UI with intelligent auto-generated titles, persistent local storage, and history management.
+- **Cloud-Native Deployment**: Optimized for serverless environments (Vercel) and constrained memory tiers (Render Free Tier) via lazy-loading of heavy ML models.
 
-## Setup and Configuration
-See [CONFIGURATION.md](docs/CONFIGURATION.md) for environment variables.
+## Technology Stack
+
+- **Frontend**: Next.js (React), Tailwind CSS, TypeScript
+- **Backend**: FastAPI, Python 3.12+
+- **Retrieval Engine**: ChromaDB, BM25, Sentence-Transformers (Lazy-loaded)
+- **Generation Model**: Mistral API
+
+## Local Development
+
+### Backend Setup
 1. Create a virtual environment: `python -m venv .venv && source .venv/bin/activate`
 2. Install dependencies: `pip install -r backend/requirements.txt`
-3. Set your `MISTRAL_API_KEY` in your environment or `.env` file.
-
-## Running the Backend
+3. Define your API keys in a `.env` file (see `docs/CONFIGURATION.md`).
+4. Start the server:
 ```bash
 cd backend
-uvicorn app.main:app --reload --port 8000
+python -m uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
 
-## Running the Frontend
+### Frontend Setup
+1. Install Node.js dependencies:
 ```bash
 cd frontend
 npm install
+```
+2. Start the development server:
+```bash
 npm run dev
 ```
 
-## Evaluation
-Run the smoke evaluation script to test the routing logic and system latency:
-```bash
-python scripts/evaluate.py --smoke
-```
-Run unit tests:
-```bash
-pytest backend/tests/
-```
+## Documentation
 
-## Limitations
-This chatbot answers *strictly* from the indexed BEE manuals. It may refuse to answer queries if the required technical evidence is not present in the retrieved context.
-
-## Deployment
-Recommended deployment:
-- **Frontend**: Vercel
-- **Backend**: Render
-- **LLM**: Mistral API
-- **Vector/Index Storage**: Render persistent disk or prebuilt index artifact
-
-See [DEPLOYMENT.md](docs/DEPLOYMENT.md) for detailed deployment options and strategies.
+For a detailed breakdown of the internal architecture and modules, see [CODEBASE_STRUCTURE.md](CODEBASE_STRUCTURE.md).
