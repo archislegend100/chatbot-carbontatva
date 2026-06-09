@@ -449,9 +449,9 @@ export default function Home() {
                 </div>
                 <div className="space-y-3 text-xs text-gray-600 dark:text-gray-300">
                   <p><strong className="text-emerald-600 dark:text-emerald-400">Auto:</strong> Smart routing. Balances speed and accuracy based on your query's complexity.</p>
-                  <p><strong className="text-emerald-600 dark:text-emerald-400">Fast:</strong> Quick facts. Skips heavy reranking. Best for straightforward definitions.</p>
-                  <p><strong className="text-emerald-600 dark:text-emerald-400">Deep:</strong> Comprehensive. Uses semantic expansion and cross-encoder reranking. Best for standard questions.</p>
-                  <p><strong className="text-emerald-600 dark:text-emerald-400">Research:</strong> Exhaustive. Uses ColBERT token matching and Multi-Query. Best for complex troubleshooting.</p>
+                  <p><strong className="text-emerald-600 dark:text-emerald-400">Fast:</strong> Standard hybrid search. Best for straightforward facts and definitions.</p>
+                  <p><strong className="text-emerald-600 dark:text-emerald-400">Deep:</strong> Extended search. Retrieves a larger volume of context. Best for standard questions.</p>
+                  <p><strong className="text-emerald-600 dark:text-emerald-400">Research:</strong> Exhaustive. Uses Multi-Query expansion and maximum context bounds. Best for complex troubleshooting.</p>
                 </div>
               </div>
             )}
