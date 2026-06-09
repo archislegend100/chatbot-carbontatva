@@ -10,7 +10,7 @@ class DenseRetriever:
         self.collection = self.client.get_or_create_collection(name="carbontatva_docs")
 
     async def search(self, query: str, top_k: int = 15, query_profile: QueryProfile = None) -> List[Dict[str, Any]]:
-        query_embedding = embedding_service.embed_text(query)
+        query_embedding = await embedding_service.embed_text(query)
         
         where_filter = {}
         # Optional: Apply domain filter if domain is strictly known and not mixed

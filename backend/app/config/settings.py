@@ -3,17 +3,18 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     # Base LLM Settings
-    MISTRAL_API_KEY: str = ""
+    MISTRAL_API_KEY: str = "VHs0tggpboiuLlgGQWQewtA6OnO9IKWl"
     MISTRAL_MODEL: str = "mistral-small-latest"
     MISTRAL_TEMPERATURE: float = 0.2
     MISTRAL_MAX_TOKENS: int = 1200
     
     # Embedding Models
-    EMBEDDING_MODEL: str = "BAAI/bge-large-en-v1.5"
+    EMBEDDING_MODEL: str = "mistral-embed"
     EMBED_BATCH_SIZE: int = 32
     
     # Reranking Models
     RERANKER_MODEL: str = "BAAI/bge-reranker-base"
+    ENABLE_RERANKER: bool = False  # Disabled for Render Free Tier
     
     # Feature Toggles
     ENABLE_COLBERT: bool = False

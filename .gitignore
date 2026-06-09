@@ -17,8 +17,8 @@ env/
 
 # Data and Cache
 data/cache/
-data/indexes/
-data/vector_store/
+# data/indexes/  # Commented out so Render can receive the Mistral API vector store
+# data/vector_store/  # Commented out so Render can receive the Mistral API vector store
 data/ocr_cache/
 
 # Node
@@ -33,3 +33,5 @@ yarn-error.log*
 .DS_Store
 Thumbs.db
 *.pdf
+.vercel
+.env*

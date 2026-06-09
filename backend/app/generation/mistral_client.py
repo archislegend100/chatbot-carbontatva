@@ -1,6 +1,6 @@
 import httpx
 import logging
-from typing import Optional, AsyncGenerator
+from typing import Optional, AsyncGenerator, List
 from app.config.settings import settings
 
 logger = logging.getLogger(__name__)
@@ -92,5 +92,39 @@ class MistralClient:
             except Exception as e:
                 logger.error(f"Mistral Streaming Error: {str(e)}")
                 yield " [Error: Communication with Mistral API failed.]"
+
+    async def embed_batch(self, texts: List[str]) -> List[List[float]]:
+        """Batch embedding generation."""
+        if not self.api_key:
+            raise MistralAPIError("MISTRAL_API_KEY is not set.")
+            
+        payload = {
+            "model": settings.EMBEDDING_MODEL,
+            "input": texts
+        }
+        
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            try:
+                response = await client.post(
+                    f"{self.base_url}/embeddings",
+                    headers=self.headers,
+                    json=payload
+                )
+                response.raise_for_status()
+                data = response.json()
+                
+                # Sort by index to ensure order matches input
+                embeddings = []
+                # Mistral returns data array where each element has 'embedding' and 'index'
+                sorted_data = sorted(data["data"], key=lambda x: x["index"])
+                for item in sorted_data:
+                    embeddings.append(item["embedding"])
+                return embeddings
+            except httpx.HTTPStatusError as e:
+                logger.error(f"Mistral API Status Error during embedding: {e.response.status_code}")
+                raise MistralAPIError("Failed to generate embeddings. Please check your configuration.")
+            except httpx.RequestError as e:
+                logger.error(f"Mistral API Request Error during embedding: {str(e)}")
+                raise MistralAPIError("Failed to communicate with Mistral API.")
 
 mistral_client = MistralClient()

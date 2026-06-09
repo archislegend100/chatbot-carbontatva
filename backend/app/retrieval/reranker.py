@@ -17,6 +17,13 @@ class Reranker:
         if not candidates:
             return []
             
+        if not settings.ENABLE_RERANKER:
+            # Bypass reranking and just return top_k candidates, preserving their existing scores
+            for doc in candidates:
+                if "rerank_score" not in doc:
+                    doc["rerank_score"] = doc.get("score", 0.0)
+            return candidates[:top_k]
+            
         model = self._get_model()
         
         # Prepare pairs for cross-encoder

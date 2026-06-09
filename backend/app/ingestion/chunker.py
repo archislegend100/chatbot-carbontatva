@@ -2,7 +2,7 @@ import re
 import hashlib
 from typing import List, Dict, Any, Optional
 
-class Chunker:
+class DocumentChunker:
     def __init__(self, semantic_size=500, semantic_overlap=100):
         self.semantic_size = semantic_size
         self.semantic_overlap = semantic_overlap
@@ -65,56 +65,62 @@ class Chunker:
                 
         return chunks
 
-    def process_document(self, sections: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        """
-        Process a document divided into sections (e.g., from OCR).
-        Input section format:
-        {
-            "book_name": "...",
-            "utility_domain": "...",
-            "chapter_title": "...",
-            "section_title": "...",
-            "page_start": 0,
-            "page_end": 0,
-            "text": "..."
-        }
-        """
+    def chunk_document(self, parsed_doc, spans) -> list:
+        from app.models.schemas import DocumentChunk, ChunkMetadata, ChunkType, ContentType
         all_chunks = []
         
-        for section in sections:
-            parent_text = section.get("text", "")
-            if not parent_text:
+        for span in spans:
+            text = span.full_text
+            if not text.strip():
                 continue
                 
-            parent_id = f"parent_{self.generate_hash(parent_text)}"
+            parent_id = f"parent_{self.generate_hash(text)}"
             
             base_metadata = {
-                "book_name": section.get("book_name", ""),
-                "utility_domain": section.get("utility_domain", "unknown"),
-                "chapter_title": section.get("chapter_title", ""),
-                "section_title": section.get("section_title", ""),
-                "page_start": section.get("page_start", 0),
-                "page_end": section.get("page_end", 0),
-                "source_hash": self.generate_hash(parent_text)
+                "document_id": parsed_doc.document_id,
+                "book_name": parsed_doc.book_name,
+                "utility_domain": parsed_doc.utility_domain,
+                "chapter_num": span.chapter_num,
+                "chapter_title": span.chapter_title,
+                "section_title": span.section_title,
+                "subsection_title": span.subsection_title,
+                "page_start": span.page_start,
+                "page_end": span.page_end,
             }
             
-            # 1. Add the parent chunk itself
-            all_chunks.append({
-                "chunk_id": parent_id,
-                "parent_id": parent_id,
-                "text": parent_text,
-                "metadata": {
-                    **base_metadata,
-                    "chunk_type": "parent_section",
-                    "has_table": False,
-                    "has_formula": False
-                }
-            })
+            raw_chunks = self.split_into_semantic_chunks(text, parent_id, base_metadata)
             
-            # 2. Add semantic and specific (table/formula) child chunks
-            child_chunks = self.split_into_semantic_chunks(parent_text, parent_id, base_metadata)
-            all_chunks.extend(child_chunks)
-            
+            for rc in raw_chunks:
+                meta_dict = rc["metadata"]
+                chunk_type_str = meta_dict.get("chunk_type")
+                
+                ct = ChunkType.SEMANTIC
+                ctype = ContentType.TEXT
+                if chunk_type_str == "table_chunk":
+                    ct = ChunkType.TABLE
+                    ctype = ContentType.TABLE
+                elif chunk_type_str == "formula_chunk":
+                    ct = ChunkType.FORMULA
+                    ctype = ContentType.FORMULA
+                    
+                meta_obj = ChunkMetadata(
+                    chunk_id=rc["chunk_id"],
+                    document_id=parsed_doc.document_id,
+                    book_name=parsed_doc.book_name,
+                    utility_domain=parsed_doc.utility_domain,
+                    chapter_num=span.chapter_num,
+                    chapter_title=span.chapter_title,
+                    section_title=span.section_title,
+                    subsection_title=span.subsection_title,
+                    page_start=span.page_start,
+                    page_end=span.page_end,
+                    chunk_type=ct,
+                    content_type=ctype,
+                    word_count=len(rc["text"].split()),
+                    char_count=len(rc["text"])
+                )
+                all_chunks.append(DocumentChunk(text=rc["text"], metadata=meta_obj))
+                
         return all_chunks
 
-chunker = Chunker()
+chunker = DocumentChunker()
